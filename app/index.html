@@ -1177,9 +1177,10 @@ function applyPv(syncInputs){
 })();
 
 // ---------- Push известия ----------
-var VAPID_PUB='BBwSc2dtV7MF2VG73MIuN9M9fHBVYoVcl87nQR6bAetuF7OHdJaMBsegDxSJX0701ZZN09lKp46cWrb7bUwWBN0';
+var VAPID_PUB='__VAPID_PUB__';
 var NOTIFY_DAYS_ALL=[30,14,7,3,1,0];
 function notifyDays(){var d=S.notify&&S.notify.days;return Array.isArray(d)?d:[30,7,3,1,0]}
+function pushKeyReady(){return /^[A-Za-z0-9_-]{80,}$/.test(VAPID_PUB)}
 function pushSupported(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window}
 function b64uToBytes(s){var p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/')),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
 function swReg(){return navigator.serviceWorker.getRegistration().then(function(r){return r||navigator.serviceWorker.register('sw.js')}).then(function(){return navigator.serviceWorker.ready})}
@@ -1227,6 +1228,7 @@ function notifySettingsHTML(){
   var p=ui.push,h='<section><h2>Известия</h2><div class="box">';
   if(!p){h+='<p class="muted small">Проверка…</p></div></section>';return h}
   if(!p.supported)return h+'<p class="foot">Този браузър не поддържа известия. На Android ползвайте инсталираното приложение или Chrome.</p></div></section>';
+  if(!pushKeyReady())return h+'<p class="foot">Известията още не са настроени: в GitHub липсва променливата <b>VAPID_PUBLIC_KEY</b>. След като я добавите, публикуването ще я вгради автоматично.</p></div></section>';
   var on=p.perm==='granted'&&p.sub;
   h+='<div class="ntf-st'+(on?' on':'')+'"><span class="dot"></span><b>'+(on?'Включени на това устройство':p.perm==='denied'?'Блокирани в настройките на браузъра':'Изключени на това устройство')+'</b></div>';
   if(p.perm==='denied')h+='<p class="foot">Разрешете известията за сайта от настройките на браузъра или на приложението (Android: Настройки → Приложения → Car Diary → Известия) и опитайте отново.</p>';

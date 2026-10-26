@@ -15,7 +15,9 @@
 
 ## Известия
 - Всеки ден GitHub Actions (`.github/workflows/notify.yml`) изпраща празен сигнал до регистрираните устройства. Сигналът не носи данни: всяко устройство само изчислява какво да покаже от собственото си копие на сроковете.
-- Нужни секрети в *Settings → Secrets and variables → Actions*:
-  - `VAPID_PRIVATE_KEY` – частният ключ за подписване на сигнала;
+- Ключове: генерират се веднъж с `npx web-push generate-vapid-keys`.
+- В *Settings → Secrets and variables → Actions*:
+  - променлива (Variables) `VAPID_PUBLIC_KEY` – публичният ключ; вгражда се в приложението при публикуване;
+  - секрет `VAPID_PRIVATE_KEY` – частният ключ за подписване на сигнала;
   - `PUSH_SUBSCRIPTIONS` – кодовете на устройствата, по един на ред (от приложението: Интервали → Известия).
 - Ръчна проба: *Actions → Известия → Run workflow → test*.

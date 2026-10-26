@@ -24,6 +24,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Вграждане на публичния ключ за известия
+        env:
+          VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY }}
+        run: |
+          if [ -n "$VAPID_PUBLIC_KEY" ]; then
+            sed -i "s/__VAPID_PUB__/${VAPID_PUBLIC_KEY}/" app/index.html
+            echo "Ключът е вграден."
+          else
+            echo "VAPID_PUBLIC_KEY не е зададена – известията ще са изключени в приложението."
+          fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app
