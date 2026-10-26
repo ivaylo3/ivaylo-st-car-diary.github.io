@@ -255,6 +255,10 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 .toast .t-undo{padding:6px 8px}
 .toast .t-x{text-decoration:none;font-size:1.25rem;line-height:1;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;opacity:.75;padding:0}
 .toast .t-x:hover{opacity:1;background:rgba(127,127,127,.2)}
+.ntf-st{display:flex;align-items:center;gap:9px;font-size:.92rem}
+.ntf-st .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.ntf-st.on .dot{background:var(--ok);box-shadow:0 0 0 4px var(--ok-bg)}
+#push-code{font-family:ui-monospace,Menlo,monospace;font-size:.72rem;line-height:1.4;min-height:80px}
 .calm{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow);color:var(--muted);font-size:.9rem}
 .calm svg{color:var(--ok);flex:none}.calm b{color:var(--fg)}
 .card{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -799,6 +803,8 @@ function settings(){
   var rd=S.readings.slice().sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:b.km-a.km});
 
   h+='<section><h2>Последни промени</h2><div class="box"><p class="foot">Пазят се последните 30 промени от всички устройства. Можете да върнете книжката към състоянието отпреди която и да е от тях; самото връщане също може да се отмени оттук.</p>'+versionsHTML()+'</div></section>';
+  if(!ui.push&&!ui.pushLoading){ui.pushLoading=true;setTimeout(refreshPush,0)}
+  h+=notifySettingsHTML();
   h+=dataSettingsHTML();
   h+='<section><h2>Отчитания на километража</h2><div class="box"><div class="tbl"><table><thead><tr><th>Дата</th><th class="r">Км</th><th></th></tr></thead><tbody>'+rd.map(function(r){var k=r.d+'|'+r.km;return '<tr><td class="num">'+fmtD(r.d)+'</td><td class="r num">'+fmtK(r.km)+'</td><td class="r">'+(S.readings.length>1?'<button class="btn small danger" data-act="delread" data-id="'+esc(k)+'">'+(ui.del==='r:'+k?'Потвърди':'Изтрий')+'</button>':'')+'</td></tr>'}).join('')+'</tbody></table></div></div></section>';
   return h;
@@ -895,6 +901,7 @@ function render(){
   var rows=allRows(),h=header(rows)+authBanner()+(ui.auth==='ok'?staleHTML():'');
   h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notes():ui.tab==='settings'?settings():board(rows);
   root.innerHTML='<div class="wrap">'+h+'</div>'+sheetHTML();
+  if(ui.auth==='ok')writeDueCache();
   document.body.style.overflow=ui.sheet?'hidden':'';
   if(justOpened){justOpened=false;var f=root.querySelector('.sheet input[type=number], .sheet input[type=date]');if(f)f.focus()}
 }
@@ -1169,6 +1176,70 @@ function applyPv(syncInputs){
   document.addEventListener('wheel',function(e){var bx=e.target&&e.target.closest&&e.target.closest('#pv-box');if(!bx||!ui.sheet||!ui.sheet.v)return;e.preventDefault();var v=ui.sheet.v;v.z=Math.min(3,Math.max(1,Math.round((v.z-e.deltaY*0.002)*100)/100));applyPv(true)},{passive:false});
 })();
 
+// ---------- Push известия ----------
+var VAPID_PUB='BBwSc2dtV7MF2VG73MIuN9M9fHBVYoVcl87nQR6bAetuF7OHdJaMBsegDxSJX0701ZZN09lKp46cWrb7bUwWBN0';
+var NOTIFY_DAYS_ALL=[30,14,7,3,1,0];
+function notifyDays(){var d=S.notify&&S.notify.days;return Array.isArray(d)?d:[30,7,3,1,0]}
+function pushSupported(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window}
+function b64uToBytes(s){var p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/')),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function swReg(){return navigator.serviceWorker.getRegistration().then(function(r){return r||navigator.serviceWorker.register('sw.js')}).then(function(){return navigator.serviceWorker.ready})}
+function refreshPush(){
+  if(!pushSupported()){ui.push={supported:false};render();return}
+  swReg().then(function(reg){return reg.pushManager.getSubscription()}).then(function(sub){
+    ui.push={supported:true,perm:Notification.permission,sub:sub?JSON.stringify(sub):null};render();
+  }).catch(function(e){ui.push={supported:true,perm:Notification.permission,err:errText(e)};render()});
+}
+function enablePush(){
+  if(!pushSupported())return;
+  ui.pushBusy=true;render();
+  Notification.requestPermission().then(function(p){
+    if(p!=='granted'){ui.pushBusy=false;ui.push={supported:true,perm:p};render();return}
+    return swReg().then(function(reg){return reg.pushManager.getSubscription().then(function(s){return s||reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uToBytes(VAPID_PUB)})})})
+      .then(function(sub){ui.pushBusy=false;ui.push={supported:true,perm:'granted',sub:JSON.stringify(sub)};writeDueCache(true);render();toast('Известията са включени на това устройство',false,5000)});
+  }).catch(function(e){ui.pushBusy=false;ui.push=Object.assign({},ui.push,{err:errText(e)});render()});
+}
+function disablePush(){
+  swReg().then(function(reg){return reg.pushManager.getSubscription()}).then(function(s){return s&&s.unsubscribe()}).then(function(){refreshPush();toast('Известията са изключени на това устройство',false,4000)});
+}
+function testNotification(){
+  swReg().then(function(reg){
+    var sn=dueSnapshot(),soon=sn.items.filter(function(i){return i.d&&days(today(),i.d)<=30}).length;
+    return reg.showNotification('Car Diary · тест',{body:'Известията на това устройство работят.'+(soon?' В следващите 30 дни: '+soon+' позиции.':''),icon:'icons/icon-192.png',badge:'icons/badge-72.png',tag:'car-diary-test',data:{url:location.href.split('#')[0]}});
+  }).catch(function(e){toast('Тестът не мина: '+errText(e),false,5000)});
+}
+function dueSnapshot(){
+  var c=cur(),items=[];
+  S.items.forEach(function(it){var x=compute(it);if(x.dueDate||x.dueKm!=null)items.push({k:it.id,n:it.name,d:x.dueDate||null,km:x.dueKm!=null?x.dueKm:null})});
+  S.docs.forEach(function(dc){items.push({k:'doc-'+dc.id,n:dc.name,d:dc.until,km:null})});
+  return {v:1,km:c.km,kmDate:c.d,rate:rate()||0,days:notifyDays(),overdueEvery:3,kmMarks:[1500,500,0],url:location.href.split('#')[0].split('?')[0],items:items};
+}
+var lastDue='',dueTimer=null;
+function writeDueCache(force){
+  if(!('caches' in window))return;
+  clearTimeout(dueTimer);
+  dueTimer=setTimeout(function(){
+    try{var js=JSON.stringify(dueSnapshot());if(!force&&js===lastDue)return;lastDue=js;
+      caches.open('cd-notify').then(function(c){return c.put('due.json',new Response(js,{headers:{'Content-Type':'application/json'}}))}).catch(function(){});
+    }catch(e){}
+  },force?0:800);
+}
+function notifySettingsHTML(){
+  var p=ui.push,h='<section><h2>Известия</h2><div class="box">';
+  if(!p){h+='<p class="muted small">Проверка…</p></div></section>';return h}
+  if(!p.supported)return h+'<p class="foot">Този браузър не поддържа известия. На Android ползвайте инсталираното приложение или Chrome.</p></div></section>';
+  var on=p.perm==='granted'&&p.sub;
+  h+='<div class="ntf-st'+(on?' on':'')+'"><span class="dot"></span><b>'+(on?'Включени на това устройство':p.perm==='denied'?'Блокирани в настройките на браузъра':'Изключени на това устройство')+'</b></div>';
+  if(p.perm==='denied')h+='<p class="foot">Разрешете известията за сайта от настройките на браузъра или на приложението (Android: Настройки → Приложения → Car Diary → Известия) и опитайте отново.</p>';
+  h+='<div class="actions">'+(on?'<button class="btn" data-act="push-off">Изключи</button><button class="btn" data-act="push-test">Тестово известие</button>':'<button class="btn primary" data-act="push-on"'+(ui.pushBusy||p.perm==='denied'?' disabled':'')+'>'+(ui.pushBusy?'Включване…':'Включи известия на това устройство')+'</button>')+'</div>';
+  if(p.err)h+='<p class="err">'+esc(p.err)+'</p>';
+  var dd=notifyDays();
+  h+='<div class="f"><span>Напомняй преди срока</span><div class="chips">'+NOTIFY_DAYS_ALL.map(function(d){return '<label class="chk"><input type="checkbox" class="ntf-day" value="'+d+'"'+(dd.indexOf(d)>=0?' checked':'')+'><span>'+(d===0?'в деня':d===1?'1 ден':d+' дни')+'</span></label>'}).join('')+'</div><p class="foot">Плюс при 1 500 и 500 км преди обслужване по километри, и на всеки 3 дни при просрочено. Проверката е всеки ден около 8:30. Настройката важи за всички устройства.</p></div>';
+  if(on){
+    h+='<details class="imp-det"'+(ui.pushCodeOpen?' open':'')+'><summary>Свързване с GitHub (еднократно за всяко устройство)</summary><ol class="steps"><li>Копирайте кода на това устройство.</li><li>Отворете <b>github.com → вашето репо → Settings → Secrets and variables → Actions</b>.</li><li>Отворете (или създайте) <b>PUSH_SUBSCRIPTIONS</b> и поставете кода <b>на нов ред</b> под кодовете на другите устройства.</li></ol><textarea id="push-code" rows="4" readonly>'+esc(p.sub)+'</textarea><div class="actions"><button class="btn primary" data-act="push-copy">Копирай кода</button></div><p class="foot">Кодът е само адрес за доставяне на известия до това устройство. В него няма данни от книжката.</p></details>';
+  }
+  return h+'</div></section>';
+}
+
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
 var pullTimer=null;
 var syncTimer=null,inFlight=false,dirty=lsGet('kq-dirty')==='1',pendingMsgs=[],baseSnap=lsGet('kq-base');
@@ -1335,6 +1406,10 @@ root.addEventListener('click',function(e){
   if(a==='photo-edit'){openPhotoEditor();return}
   if(a==='pv-center'){if(ui.sheet&&ui.sheet.v){ui.sheet.v.x=50;ui.sheet.v.y=50;applyPv(true)}return}
   if(a==='pv-reset'){if(ui.sheet&&ui.sheet.v){ui.sheet.v={z:1,x:50,y:50};applyPv(true)}return}
+  if(a==='push-on'){enablePush();return}
+  if(a==='push-off'){disablePush();return}
+  if(a==='push-test'){testNotification();return}
+  if(a==='push-copy'){var pc=ui.push&&ui.push.sub||'';ui.pushCodeOpen=true;var sel=function(){var ta=document.getElementById('push-code');if(ta){ta.focus();ta.select()}toast('Кодът е маркиран – копирайте с Ctrl+C / „Копиране“',false,5000)};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(pc).then(function(){toast('Кодът е копиран',false,3000)},sel);else sel();return}
   if(a==='retry'){setSave('Свързване…');if(dirty)push();else pull();return}
   if(a==='vers'){if(!gs()){ui.versions={err:'Достъпно само през Google адреса на книжката.'};render();return}
     ui.versLoading=true;render();
@@ -1385,6 +1460,7 @@ root.addEventListener('input',function(e){
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ui.sheet){ui.sheet=null;render()}});
 root.addEventListener('change',function(e){
   var t=e.target;
+  if(t.classList&&t.classList.contains('ntf-day')){var nd=Array.prototype.map.call(root.querySelectorAll('.ntf-day:checked'),function(i){return +i.value}).sort(function(a,b){return b-a});act('Настройката за известия е запазена',function(){S.notify=Object.assign({},S.notify||{},{days:nd})});return}
   if(t.id==='imp-file'){var fl=t.files&&t.files[0];if(fl)readImport(fl);return}
   if(t.id==='car-file'){var cf=t.files&&t.files[0];if(!cf)return;processCar(cf).then(function(u){act('Снимката на колата е сменена',function(){S.car.photo=u;delete S.car.photoView;setTimeout(function(){openPhotoEditor()},50)})},function(){toast('Файлът не е снимка',false,4000)});return}
   if(t.classList&&t.classList.contains('car-in')){var cfld=t.getAttribute('data-f'),cv2=t.value.trim();if(cfld==='vin')cv2=cv2.toUpperCase();if(cfld==='purchase'&&!/^\d{4}-\d{2}-\d{2}$/.test(cv2))return;if((S.car[cfld]||'')===cv2)return;act('Данните за автомобила са запазени',function(){S.car[cfld]=cv2});return}

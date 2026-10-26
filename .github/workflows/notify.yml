@@ -1,0 +1,34 @@
+name: Известия
+
+on:
+  schedule:
+    # всеки ден в 06:30 UTC (08:30 зимно / 09:30 лятно българско време)
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Вид: daily (истинска проверка) или test (тестово известие)'
+        required: true
+        default: test
+        type: choice
+        options: [test, daily]
+
+permissions:
+  contents: read
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save --no-package-lock web-push@3.6.7
+      - run: node .github/scripts/push.mjs
+        env:
+          VAPID_PUBLIC_KEY: BBwSc2dtV7MF2VG73MIuN9M9fHBVYoVcl87nQR6bAetuF7OHdJaMBsegDxSJX0701ZZN09lKp46cWrb7bUwWBN0
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          PUSH_SUBSCRIPTIONS: ${{ secrets.PUSH_SUBSCRIPTIONS }}
+          PUSH_TYPE: ${{ github.event.inputs.type || 'daily' }}
+          SITE_URL: https://ivaylo3.github.io/ivaylo-st-car-diary.github.io/
