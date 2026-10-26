@@ -174,6 +174,7 @@ section{display:flex;flex-direction:column;gap:14px}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
 .steps b{color:var(--fg)}
 .file-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.btn.primary.file-btn,.btn.primary.file-btn:hover{color:var(--accent-fg)}
 .file-btn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .imp-sum{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
 .imp-sum li{background:var(--surface);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column}
@@ -1009,7 +1010,7 @@ function importBlock(ctx){
 }
 function onboardHTML(){
   return '<div class="login"><div class="login-card wide"><h1>Добре дошли</h1><p>Във вашия Google Drive още няма книжка. Изберете как да започнете.</p>'+
-    '<div class="ob"><h2>Пренеси данните от досегашната книжка</h2><ol class="steps"><li>Отворете <b>drive.google.com</b> на компютъра.</li><li>Намерете файла <b>kodiaq-servizna-knizhka.json</b> (търсачката горе).</li><li>Десен бутон → <b>Изтегляне</b>.</li><li>Изберете изтегления файл тук.</li></ol>'+importBlock('onboard')+'</div>'+
+    '<div class="ob"><h2>Пренеси данните от досегашната книжка</h2><ol class="steps"><li>Отворете <b>drive.google.com</b> на компютъра.</li><li>Намерете файла <b>kodiaq-servizna-knizhka.json</b> (търсачката горе). Внимание: има и файл <b>…-history.json</b>, той не е този.</li><li>Десен бутон → <b>Изтегляне</b>.</li><li>Изберете изтегления файл тук.</li></ol>'+importBlock('onboard')+'</div>'+
     '<div class="ob"><h2>Започни на чисто</h2><p class="muted small">Празна книжка със стандартните позиции и интервали.</p><button class="btn big" data-act="start-fresh">Започни на чисто</button></div>'+
     '<p class="foot">Влезли сте като '+esc(auth.email||'')+'. <button class="link" data-act="signout">Изход</button></p></div></div>';
 }
@@ -1024,9 +1025,13 @@ function readImport(file){
   ui.importErr='';ui.importPreview=null;
   var rd=new FileReader();
   rd.onload=function(){
-    try{var d=JSON.parse(rd.result);if(!d||!Array.isArray(d.items)||!Array.isArray(d.log))throw 0;ui.importPreview={name:file.name,data:d}}
-    catch(e){ui.importErr='Файлът не е копие на сервизната книжка. Изберете kodiaq-servizna-knizhka.json.'}
-    render();
+    var txt=String(rd.result||'').replace(/^\uFEFF/,'').trim(),d=null;
+    try{d=JSON.parse(txt)}catch(e){ui.importErr='Файлът „'+file.name+'“ не е валиден JSON ('+(txt?txt.slice(0,30).replace(/\s+/g,' ')+'…':'празен файл')+'). Изберете kodiaq-servizna-knizhka.json.';render();return}
+    if(Array.isArray(d)&&d.length&&typeof d[0].data==='string'){ui.importErr='Това е файлът с историята на промените („…-history.json“). Изберете другия файл: kodiaq-servizna-knizhka.json, без „history“ в името.';render();return}
+    if(d&&typeof d.data==='string'){try{d=JSON.parse(d.data)}catch(e){}}
+    if(!d||typeof d!=='object'||!Array.isArray(d.items)){ui.importErr='Файлът „'+file.name+'“ не съдържа сервизна книжка (липсват позициите за обслужване). Изберете kodiaq-servizna-knizhka.json.';render();return}
+    if(!Array.isArray(d.log))d.log=[];
+    ui.importPreview={name:file.name,data:d};render();
   };
   rd.onerror=function(){ui.importErr='Файлът не може да бъде прочетен.';render()};
   rd.readAsText(file);
