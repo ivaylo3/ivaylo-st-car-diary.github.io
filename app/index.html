@@ -161,6 +161,15 @@ section{display:flex;flex-direction:column;gap:14px}
 .vers-t b{font-weight:600;font-size:.88rem;overflow-wrap:anywhere}
 .hero-photo.empty{cursor:pointer;color:var(--muted);gap:8px;font-weight:600;font-size:.88rem;align-content:center;justify-items:center;border:2px dashed var(--line)}
 .hero-photo.empty:hover{color:var(--accent);border-color:var(--accent)}
+.hero-photo.has-img{overflow:hidden}
+.hero-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.ph-edit{position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;padding:6px 11px;background:rgba(12,20,18,.62);color:#fff;font-weight:600;font-size:.76rem;cursor:pointer;backdrop-filter:blur(4px)}
+.ph-edit:hover{background:rgba(12,20,18,.8)}
+.pv-box{position:relative;width:100%;aspect-ratio:1000/630;border-radius:16px;overflow:hidden;background:var(--sunk);touch-action:none;cursor:grab;user-select:none}
+.pv-box.drag{cursor:grabbing}
+.pv-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.pv-hint{position:absolute;left:10px;top:10px;display:inline-flex;gap:5px;align-items:center;font-size:.72rem;font-weight:600;color:#fff;background:rgba(12,20,18,.55);padding:4px 9px;border-radius:999px;pointer-events:none}
+input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);height:28px}
 .stale.auth{background:var(--accent-soft)}.stale.auth svg{color:var(--accent)}
 .login{min-height:100vh;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-left,0px));background:var(--bg)}
 .login-card{width:100%;max-width:420px;background:var(--surface);border-radius:28px;box-shadow:var(--shadow);padding:32px 26px;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center}
@@ -643,7 +652,7 @@ function schedule(){
 function header(rows){
   var c=cur(),r=rate();
   var att=rows.filter(function(o){return o.x.st!=='ok'}).length,bad=rows.some(function(o){return o.x.st==='bad'});
-  var h='<header class="hero">'+(S.car.photo?'<div class="hero-photo" role="img" aria-label="Снимка на колата" style="background-image:url('+S.car.photo+')"></div>':'<label class="hero-photo empty">'+svg('camera',26)+'<span>Добави снимка на колата</span><input type="file" id="car-file" accept="image/*" class="sr"></label>')+'<div class="hero-card"><div class="hero-id"><span class="eyebrow">'+esc(S.car.sub)+'</span><h1>'+esc(S.car.name)+'</h1>'+(S.car.vin?'<div class="vin"><span class="vin-l">VIN</span><span class="num" id="vin-t">'+esc(S.car.vin)+'</span><button type="button" class="link" data-act="copy-vin">Копирай</button></div>':'')+'</div>';
+  var h='<header class="hero">'+(S.car.photo?'<div class="hero-photo has-img"><img src="'+S.car.photo+'" alt="Снимка на колата" style="'+pvStyle(S.car.photoView)+'"><button type="button" class="ph-edit" data-act="photo-edit">'+svg('sliders',16)+'<span>Нагласи</span></button></div>':'<label class="hero-photo empty">'+svg('camera',26)+'<span>Добави снимка на колата</span><input type="file" id="car-file" accept="image/*" class="sr"></label>')+'<div class="hero-card"><div class="hero-id"><span class="eyebrow">'+esc(S.car.sub)+'</span><h1>'+esc(S.car.name)+'</h1>'+(S.car.vin?'<div class="vin"><span class="vin-l">VIN</span><span class="num" id="vin-t">'+esc(S.car.vin)+'</span><button type="button" class="link" data-act="copy-vin">Копирай</button></div>':'')+'</div>';
   h+='<button type="button" class="odo-btn" data-act="odo" aria-label="Обнови километража"><span class="odo-n">'+fmtK(c.km)+'<small> км</small></span><span class="odo-s">към '+fmtD(c.d)+(r?' · ≈ '+fmtK(r*365)+' км/год.':'')+'</span><span class="odo-cta">Обнови</span></button></div><div class="save'+(saveCls?' '+saveCls:'')+'" id="save">'+esc(saveText())+'</div></header>';
   function tb(t){return '<button class="tab" role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(ui.tab===t[0])+'">'+svg(t[2],20)+'<span>'+t[1]+'</span>'+(t[3]?'<b class="badge'+(bad?' bad':'')+'">'+t[3]+'</b>':'')+'</button>'}
   h+='<nav class="tabs" role="tablist" aria-label="Раздели"><div class="tabs-main">'+[['board','Табло','gauge',att],['notes','Записки','pen',0]].map(tb).join('')+'</div><div class="tabs-sub">'+[['history','История','clock',0],['settings','Интервали','sliders',0]].map(tb).join('')+'</div></nav>';
@@ -770,7 +779,13 @@ function sheetHTML(){
   if(!ui.sheet)return '';
   var c=cur(),t=today(),s=ui.sheet,title='',sub='',body='';
   var actions='<div class="sheet-actions"><button type="button" class="btn" data-act="close">Отказ</button><button class="btn primary" type="submit">Запиши</button></div>';
-  if(s.type==='item'){
+  if(s.type==='photo'){
+    var pv=s.v;title='Нагласи снимката';sub='Плъзнете снимката или ползвайте плъзгачите.';
+    body='<form class="sheet-form" data-form="photo-view"><div class="pv-box" id="pv-box"><img id="pv-img" src="'+S.car.photo+'" alt="" draggable="false" style="'+pvStyle(pv)+'"><span class="pv-hint">'+svg('sliders',14)+' плъзнете</span></div>'+
+      '<label class="f">Приближение<input type="range" id="pv-z" min="1" max="3" step="0.02" value="'+pv.z+'"></label>'+
+      '<div class="fields"><label class="f">Хоризонтално<input type="range" id="pv-x" min="0" max="100" step="0.5" value="'+pv.x+'"></label><label class="f">Вертикално<input type="range" id="pv-y" min="0" max="100" step="0.5" value="'+pv.y+'"></label></div>'+
+      '<div class="actions"><button type="button" class="btn small" data-act="pv-center">Центрирай</button><button type="button" class="btn small" data-act="pv-reset">Нулирай</button></div>'+actions+'</form>';
+  }else if(s.type==='item'){
     var io=findRow(s.id);if(!io)return '';
     title=io.it.name;sub=o_sub(io);body='<div class="dt">'+itemDetailBody(io)+'</div>';
   }else if(s.type==='visit'){
@@ -1059,6 +1074,23 @@ function processCar(file){return new Promise(function(res,rej){
   img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('Неподдържан формат'))};img.src=url;
 })}
 
+function pvNorm(v){v=v||{};return {z:Math.min(3,Math.max(1,+v.z||1)),x:Math.min(100,Math.max(0,v.x==null?50:+v.x)),y:Math.min(100,Math.max(0,v.y==null?50:+v.y))}}
+function pvStyle(v){v=pvNorm(v);return 'object-position:'+v.x+'% '+v.y+'%;transform:scale('+v.z+');transform-origin:'+v.x+'% '+v.y+'%'}
+function openPhotoEditor(){if(!S.car.photo)return;openSheet({type:'photo',v:pvNorm(S.car.photoView)})}
+function applyPv(syncInputs){
+  var v=ui.sheet&&ui.sheet.v;if(!v)return;var im=document.getElementById('pv-img');if(im)im.setAttribute('style',pvStyle(v));
+  if(syncInputs){['z','x','y'].forEach(function(k){var el=document.getElementById('pv-'+k);if(el)el.value=v[k]})}
+}
+(function(){
+  var drag=null;
+  document.addEventListener('pointerdown',function(e){var bx=e.target&&e.target.closest&&e.target.closest('#pv-box');if(!bx||!ui.sheet||!ui.sheet.v)return;var r=bx.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,w:r.width,h:r.height,v0:{x:ui.sheet.v.x,y:ui.sheet.v.y},bx:bx};bx.classList.add('drag');try{bx.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
+  document.addEventListener('pointermove',function(e){if(!drag||!ui.sheet||!ui.sheet.v)return;var v=ui.sheet.v,k=Math.max(1,v.z);
+    v.x=Math.min(100,Math.max(0,drag.v0.x-(e.clientX-drag.x)/drag.w*100/k*1.6));v.y=Math.min(100,Math.max(0,drag.v0.y-(e.clientY-drag.y)/drag.h*100/k*1.6));applyPv(true)});
+  function end(){if(drag){drag.bx.classList.remove('drag');drag=null}}
+  document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
+  document.addEventListener('wheel',function(e){var bx=e.target&&e.target.closest&&e.target.closest('#pv-box');if(!bx||!ui.sheet||!ui.sheet.v)return;e.preventDefault();var v=ui.sheet.v;v.z=Math.min(3,Math.max(1,Math.round((v.z-e.deltaY*0.002)*100)/100));applyPv(true)},{passive:false});
+})();
+
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
 var pullTimer=null;
 var syncTimer=null,inFlight=false,dirty=lsGet('kq-dirty')==='1',pendingMsgs=[],baseSnap=lsGet('kq-base');
@@ -1222,6 +1254,9 @@ root.addEventListener('click',function(e){
   if(a==='import-cancel'){ui.importPreview=null;ui.importErr='';render();return}
   if(a==='start-fresh'){startFresh();return}
   if(a==='car-photo-del'){act('Снимката на колата е махната',function(){delete S.car.photo});return}
+  if(a==='photo-edit'){openPhotoEditor();return}
+  if(a==='pv-center'){if(ui.sheet&&ui.sheet.v){ui.sheet.v.x=50;ui.sheet.v.y=50;applyPv(true)}return}
+  if(a==='pv-reset'){if(ui.sheet&&ui.sheet.v){ui.sheet.v={z:1,x:50,y:50};applyPv(true)}return}
   if(a==='retry'){setSave('Свързване…');if(dirty)push();else pull();return}
   if(a==='vers'){if(!gs()){ui.versions={err:'Достъпно само през Google адреса на книжката.'};render();return}
     ui.versLoading=true;render();
@@ -1263,6 +1298,7 @@ root.addEventListener('click',function(e){
   if(a==='delread'){if(ui.del!=='r:'+id){ui.del='r:'+id;render();return}act('Отчитането е изтрито',function(){var i=S.readings.findIndex(function(r){return r.d+'|'+r.km===id});if(i>=0)S.readings.splice(i,1)});return}
 });
 root.addEventListener('input',function(e){
+  if(e.target.id==='pv-z'||e.target.id==='pv-x'||e.target.id==='pv-y'){var v=ui.sheet&&ui.sheet.v;if(!v)return;v[e.target.id.slice(3)]=parseFloat(e.target.value);applyPv();return}
   if(e.target.id==='n-q'){ui.nq=e.target.value;var pos=e.target.selectionStart;render();var qi=document.getElementById('n-q');if(qi){qi.focus();try{qi.setSelectionRange(pos,pos)}catch(x){}}return}
   if(e.target.classList.contains('pp-amt')){syncAmts();return}
   if(!e.target.classList.contains('pp'))return;
@@ -1272,7 +1308,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ui.sheet){u
 root.addEventListener('change',function(e){
   var t=e.target;
   if(t.id==='imp-file'){var fl=t.files&&t.files[0];if(fl)readImport(fl);return}
-  if(t.id==='car-file'){var cf=t.files&&t.files[0];if(!cf)return;processCar(cf).then(function(u){act('Снимката на колата е сменена',function(){S.car.photo=u})},function(){toast('Файлът не е снимка',false,4000)});return}
+  if(t.id==='car-file'){var cf=t.files&&t.files[0];if(!cf)return;processCar(cf).then(function(u){act('Снимката на колата е сменена',function(){S.car.photo=u;delete S.car.photoView;setTimeout(function(){openPhotoEditor()},50)})},function(){toast('Файлът не е снимка',false,4000)});return}
   if(t.classList&&t.classList.contains('car-in')){var cfld=t.getAttribute('data-f'),cv2=t.value.trim();if(cfld==='vin')cv2=cv2.toUpperCase();if(cfld==='purchase'&&!/^\d{4}-\d{2}-\d{2}$/.test(cv2))return;if((S.car[cfld]||'')===cv2)return;act('Данните за автомобила са запазени',function(){S.car[cfld]=cv2});return}
   if(t.id==='imp'){var file=t.files&&t.files[0];if(!file)return;var rd=new FileReader();rd.onload=function(){var er=document.getElementById('imp-err');try{var d=JSON.parse(rd.result);if(!d||!Array.isArray(d.items)||!Array.isArray(d.log))throw 0;act('Данните са заредени от файла',function(){Object.keys(S).forEach(function(k){delete S[k]});Object.keys(d).forEach(function(k){S[k]=d[k]})})}catch(x){if(er){er.textContent='Файлът не е валидно копие от книжката.';er.hidden=false}}};rd.readAsText(file);return}
   if(t.classList&&t.classList.contains('pp')){recalcPay();return}
@@ -1365,6 +1401,7 @@ function handleForm(f){
       S.tyres.sets.push(set);
       var en={id:uid(),tyre:set.id,name:'Нови гуми: '+tt.toLowerCase()+(tb?' · '+tb:''),d:td};if(set.cost)en.cost=set.cost;S.log.push(en);
     });return}
+  if(k==='photo-view'){var nv=ui.sheet.v;act('Изгледът на снимката е запазен',function(){if(nv.z===1&&nv.x===50&&nv.y===50)delete S.car.photoView;else S.car.photoView={z:nv.z,x:nv.x,y:nv.y}});return}
   if(k==='odo'){var od=val('o-date'),ok=parseInt(val('o-km'),10);if(!od||isNaN(ok))return;if(!kmGate(f,'o-err',od,ok))return;act('Километражът е обновен: '+fmtK(ok)+' км',function(){S.readings.push({d:od,km:ok})});return}
   if(k==='add'){
     var nm=val('a-name').trim(),akm=parseInt(val('a-km'),10),amo=parseInt(val('a-mo'),10);if(!nm)return;
