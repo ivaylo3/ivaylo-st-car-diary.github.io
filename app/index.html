@@ -221,6 +221,14 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 }
 @media (max-width:620px){.cta-row{grid-template-columns:1fr}.cta{min-height:0}}
 @media (prefers-reduced-motion:reduce){.cta,.att,.row-main{transition:none}.cta:hover,.att:hover,.row-main:hover{transform:none}}
+.cta-row{grid-template-columns:1fr!important}
+.cta-row .cta{min-height:0;padding:15px 18px}
+.cta-row .cta-t small{opacity:.9}
+.sec-title{display:flex;flex-direction:column;gap:2px;min-width:0}
+.nav-link{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;border:0;background:none;padding:2px 0;color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer}
+.nav-link svg:last-child{transition:transform .15s}
+.nav-link:hover svg:last-child{transform:translateX(3px)}
+.nav-link:hover span{text-decoration:underline;text-underline-offset:3px}
 .calm{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow);color:var(--muted);font-size:.9rem}
 .calm svg{color:var(--ok);flex:none}.calm b{color:var(--fg)}
 .card{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -694,9 +702,9 @@ function board(rows){
   h+='<section><div class="sec-head"><h2>Нужно е внимание</h2><span class="muted small">просрочено или до 30 дни / 1 500 км</span></div>';
   h+=urgent.length?'<div class="atts">'+urgent.map(attHTML).join('')+'</div>':'<div class="calm">'+svg('clip',22)+'<span>Нищо не изтича в следващите 30 дни. Следващото е <b>'+esc(rest[0]?rest[0].it.name:'—')+'</b> '+(rest[0]?dueText(rest[0].x):'')+'.</span></div>';
   h+='</section>';
-  h+='<div class="cta-row"><button class="cta" data-act="visit"><span class="cta-ico">'+svg('plus',20)+'</span><span class="cta-t"><b>Запиши посещение в сервиза</b><small>Отметнете всичко направено наведнъж</small></span><span class="cta-go">'+svg('chev',18)+'</span></button><button class="cta alt" data-act="tab" data-v="schedule"><span class="cta-ico">'+svg('clock',20)+'</span><span class="cta-t"><b>Целият график</b><small>Следващият срок на всичко, по дати</small></span><span class="cta-go">'+svg('chev',18)+'</span></button></div>';
+  h+='<div class="cta-row"><button class="cta" data-act="visit"><span class="cta-ico">'+svg('plus',20)+'</span><span class="cta-t"><b>Запиши посещение в сервиза</b><small>Отметнете всичко направено наведнъж</small></span></button></div>';
   if(!rest.length)return h;
-  h+='<section><div class="sec-head"><h2>Предстоящо по-нататък</h2><div class="seg" role="group" aria-label="Групиране"><button type="button" data-act="view" data-v="time" aria-pressed="'+(ui.view==='time')+'">По срок</button><button type="button" data-act="view" data-v="group" aria-pressed="'+(ui.view==='group')+'">По система</button></div></div>';
+  h+='<section><div class="sec-head"><div class="sec-title"><h2>Предстоящо по-нататък</h2><button type="button" class="nav-link" data-act="tab" data-v="schedule">'+svg('clock',15)+'<span>Целият график по дати</span>'+svg('chev',14)+'</button></div><div class="seg" role="group" aria-label="Групиране"><button type="button" data-act="view" data-v="time" aria-pressed="'+(ui.view==='time')+'">По срок</button><button type="button" data-act="view" data-v="group" aria-pressed="'+(ui.view==='group')+'">По система</button></div></div>';
   var buckets=ui.view==='time'?[
     {name:'Следващите 3 месеца',f:function(o){return o.x.eff!=null&&o.x.eff<=92}},
     {name:'До една година',f:function(o){return o.x.eff!=null&&o.x.eff>92&&o.x.eff<=365}},

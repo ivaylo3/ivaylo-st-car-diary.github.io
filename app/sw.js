@@ -1,6 +1,6 @@
 // Кешира само самото приложение, за да се отваря и без интернет.
 // Данните от Google Drive никога не минават през този кеш.
-const CACHE = 'car-diary-v2';
+const CACHE = 'car-diary-v3';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon-32.png'];
 
 self.addEventListener('install', e => {
