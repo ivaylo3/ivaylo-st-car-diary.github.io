@@ -249,6 +249,12 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 .tp>span{font-size:.74rem;color:var(--muted);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tp em{font-style:normal;font-weight:700;color:var(--fg)}
 @media (max-width:620px){.tline{grid-template-columns:repeat(5,minmax(96px,1fr));overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.tline::-webkit-scrollbar{display:none}.sc-go span,.sc-go{font-size:.8rem}.sc-t small{display:none}}
+.toast.toast{gap:6px;padding:8px 8px 8px 16px;width:max-content;max-width:min(480px,calc(100% - 32px))}
+@media (max-width:620px){.toast.toast{width:calc(100% - 32px)}}
+.toast .t-msg{flex:1;min-width:0}
+.toast .t-undo{padding:6px 8px}
+.toast .t-x{text-decoration:none;font-size:1.25rem;line-height:1;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;opacity:.75;padding:0}
+.toast .t-x:hover{opacity:1;background:rgba(127,127,127,.2)}
 .calm{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow);color:var(--muted);font-size:.9rem}
 .calm svg{color:var(--ok);flex:none}.calm b{color:var(--fg)}
 .card{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -896,11 +902,17 @@ function openSheet(s){ui.sheet=s;ui.del=null;justOpened=true;render()}
 var saveMsg='Свързване с Google Drive…',saveCls='';
 function saveText(){return saveMsg}
 function setSave(t,cls){saveMsg=t;saveCls=cls||'';var e=document.getElementById('save');if(e){e.textContent=t;e.className='save'+(cls?' '+cls:'')}}
+var toastUntil=0;
+function hideToast(){toastEl.hidden=true;toastUntil=0;clearTimeout(toastTimer)}
+function checkToast(){if(toastUntil&&Date.now()>=toastUntil)hideToast()}
 function toast(msg,undoable,ttl){
-  toastEl.innerHTML='<span>'+esc(msg)+'</span>'+(undoable?'<button type="button" data-t="undo">Отмени</button>':'');
-  toastEl.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){toastEl.hidden=true},ttl||6000);
+  ttl=Math.min(ttl||6000,12000);
+  toastEl.innerHTML='<span class="t-msg">'+esc(msg)+'</span>'+(undoable?'<button type="button" class="t-undo" data-t="undo">Отмени</button>':'')+'<button type="button" class="t-x" data-t="close" aria-label="Затвори">×</button>';
+  toastEl.hidden=false;toastUntil=Date.now()+ttl;clearTimeout(toastTimer);toastTimer=setTimeout(checkToast,ttl+50);
 }
-toastEl.addEventListener('click',function(e){if(e.target.getAttribute('data-t')==='undo')undo()});
+setInterval(checkToast,1000);
+document.addEventListener('visibilitychange',checkToast);window.addEventListener('focus',checkToast);window.addEventListener('pageshow',checkToast);
+toastEl.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-t]');if(!t)return;if(t.getAttribute('data-t')==='undo'){hideToast();undo()}else hideToast()});
 function act(msg,fn){
   var prev=JSON.stringify(S);fn();
   ssSet('kq-undo',{t:Date.now(),msg:msg,prev:prev});pendingMsgs.push(msg);
@@ -1478,7 +1490,7 @@ function handleForm(f){
 }
 render();
 var pending=ssGet('kq-undo');
-if(pending&&Date.now()-pending.t<60000)toast(pending.msg,true,Math.max(4000,60000-(Date.now()-pending.t)));
+if(pending&&Date.now()-pending.t<12000)toast(pending.msg,true,Math.max(3000,12000-(Date.now()-pending.t)));
 ui.auth=tokenValid()?'ok':'need';render();
 if(ui.auth==='ok'){setSave(dirty?'Изпращане на промени от това устройство…':'Зареждане…');pull()}else setSave('Влезте с Google, за да синхронизирате','warn');
 (function waitGis(n){if(gisReady())initGis();else if(n<60)setTimeout(function(){waitGis(n+1)},250)})(0);
