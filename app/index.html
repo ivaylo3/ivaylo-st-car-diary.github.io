@@ -377,6 +377,22 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 .nt-head{opacity:.95}
 @media (hover:hover){.nt .nt-tools{opacity:.55;transition:opacity .15s}.nt:hover .nt-tools,.nt:focus-within .nt-tools{opacity:1}}
 @media (max-width:520px){.nt{padding:14px 15px}}
+.nt-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.nt-close{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:none;color:var(--muted);font-weight:600;font-size:.82rem;padding:5px 12px 5px 8px;border-radius:999px;cursor:pointer;margin-left:auto}
+.nt-close:hover{border-color:var(--ok);color:var(--ok)}
+.nt-check{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;display:inline-block}
+.nt-close:hover .nt-check{background:var(--ok-bg)}
+.nt-close.re{padding-left:10px}
+.nt.done{background:color-mix(in srgb,var(--surface) 55%,transparent);box-shadow:none;border:1px solid var(--line)}
+.nt.done .note-text{color:var(--muted)}
+.nt-done-tag{background:var(--ok-bg);color:var(--ok)}
+.nt-more summary{cursor:pointer;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+.nt-closed{margin-top:6px}
+.nt-closed>summary{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:.92rem;color:var(--muted);padding:10px 2px;list-style:none}
+.nt-closed>summary::-webkit-details-marker{display:none}
+.nt-closed>summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-right:4px}
+.nt-closed[open]>summary::before{transform:rotate(45deg)}
+.nt-closed>summary b{font-size:.75rem;background:var(--sunk);padding:1px 8px;border-radius:999px}
 /* ---- service appointments ---- */
 .nav-pill{margin-left:auto;font-size:.68rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:999px;white-space:nowrap}
 .nav-i[aria-current="page"] .nav-pill{background:var(--surface)}
@@ -1517,10 +1533,14 @@ function notesPage(){
   var list=S.notes.slice().sort(function(a,b){var la=noteLast(a),lb=noteLast(b);return (b.pin?1:0)-(a.pin?1:0)||(la<lb?1:la>lb?-1:(a.id<b.id?1:-1))});
   if(q)list=list.filter(function(n){return noteMatches(n,q)});
   var h='<section><h2 class="sr">Записки</h2>';
-  h+='<div class="nt-bar">'+(S.notes.length>3?'<label class="nt-search"><span class="sr">Търсене</span>'+svg('filter',16)+'<input type="search" id="n-q" placeholder="Търси в записките" value="'+esc(ui.nq||'')+'"></label>':'<span class="muted nt-count">'+S.notes.length+(S.notes.length===1?' записка':' записки')+'</span>')+'<button type="button" class="btn primary nt-new" data-act="note-new">'+svg('plus',18)+'<span>Нова записка</span></button></div>';
+  h+='<div class="nt-bar">'+(S.notes.length>3?'<label class="nt-search"><span class="sr">Търсене</span>'+svg('filter',16)+'<input type="search" id="n-q" placeholder="Търси в записките" value="'+esc(ui.nq||'')+'"></label>':'<span class="muted nt-count">'+noteCountText()+'</span>')+'<button type="button" class="btn primary nt-new" data-act="note-new">'+svg('plus',18)+'<span>Нова записка</span></button></div>';
   if(!S.notes.length)h+='<div class="empty">Още няма записки. Натиснете „Нова записка“ – наблюдения, въпроси към сервиза, номера на части, контакти. Под всяка записка после може да добавяте коментари.</div>';
   else if(!list.length)h+='<div class="empty">Нищо не съвпада с „'+esc(ui.nq)+'“.</div>';
-  else h+='<div class="nt-list">'+list.map(noteCard).join('')+'</div>';
+  else{
+    var open=list.filter(function(n){return !n.done}),closed=list.filter(function(n){return n.done}).sort(function(a,b){return a.done<b.done?1:a.done>b.done?-1:0});
+    h+=open.length?'<div class="nt-list">'+open.map(noteCard).join('')+'</div>':'<div class="empty">Няма отворени записки'+(q?' с това търсене':'')+'.</div>';
+    if(closed.length)h+='<details class="nt-closed"'+(ui.notesDoneOpen||q?' open':'')+'><summary data-act="notes-done-toggle"><span>Приключени</span><b>'+closed.length+'</b></summary><div class="nt-list">'+closed.map(noteCard).join('')+'</div></details>';
+  }
   return h+'</section>';
 }
 // прозорец „Нова записка“ / „Редакция“
@@ -1533,25 +1553,34 @@ function noteSheet(s){
 }
 function openNoteSheet(id){ui.tab='notes';lsSet('kq-tab','notes');openSheet({type:'note',id:id||null});setTimeout(function(){var ta=document.getElementById(id?'ne-text':'n-text');if(ta&&ta.focus){ta.focus();if(id)try{ta.setSelectionRange(ta.value.length,ta.value.length)}catch(e){}}},60)}
 function noteCard(n){
-  var reps=(n.replies||[]).slice().sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:(a.id<b.id?-1:1)});
-  var h='<article class="nt'+(n.pin?' pinned':'')+'" id="nt-'+n.id+'">';
-  h+='<div class="nt-head"><span class="nt-when"><b>'+dLong(n.d)+'</b>'+(n.km!=null?'<span>'+fmtK(n.km)+' км</span>':'')+(n.pin?'<span class="tag">закачена</span>':'')+'</span>';
-  h+='<span class="nt-tools"><button type="button" class="nt-tool" data-act="note-pin" data-id="'+n.id+'">'+(n.pin?'Откачи':'Закачи')+'</button><button type="button" class="nt-tool" data-act="note-edit" data-id="'+n.id+'">Редактирай</button><button type="button" class="nt-tool danger" data-act="note-del" data-id="'+n.id+'">'+(ui.del==='n:'+n.id?'Потвърди'+(reps.length?' (с '+reps.length+' коментара)':''):'Изтрий')+'</button></span>';
+  var reps=(n.replies||[]).slice().sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:(a.id<b.id?-1:1)}),done=!!n.done;
+  var h='<article class="nt'+(n.pin&&!done?' pinned':'')+(done?' done':'')+'" id="nt-'+n.id+'">';
+  h+='<div class="nt-head"><span class="nt-when"><b>'+dLong(n.d)+'</b>'+(n.km!=null?'<span>'+fmtK(n.km)+' км</span>':'')+(n.pin&&!done?'<span class="tag">закачена</span>':'')+(done?'<span class="tag nt-done-tag">✓ приключена '+dLong(n.done).slice(0,5)+'</span>':'')+'</span>';
+  h+='<span class="nt-tools">'+(done?'':'<button type="button" class="nt-tool" data-act="note-pin" data-id="'+n.id+'">'+(n.pin?'Откачи':'Закачи')+'</button>')+'<button type="button" class="nt-tool" data-act="note-edit" data-id="'+n.id+'">Редактирай</button><button type="button" class="nt-tool danger" data-act="note-del" data-id="'+n.id+'">'+(ui.del==='n:'+n.id?'Потвърди'+(reps.length?' (с '+reps.length+' коментара)':''):'Изтрий')+'</button></span>';
   h+='</div>';
   h+='<div class="note-text">'+esc(n.text)+'</div>';
   if(reps.length){
-    h+='<ol class="nt-replies" aria-label="Коментари">'+reps.map(function(r){var k=n.id+'/'+r.id;return '<li class="nr"><div class="nr-head"><span class="nr-when">'+dLong(r.d)+(r.km!=null?' · '+fmtK(r.km)+' км':'')+'</span><button type="button" class="nt-tool danger" data-act="reply-del" data-id="'+esc(k)+'">'+(ui.del==='nr:'+k?'Потвърди':'Изтрий')+'</button></div><div class="nr-text">'+esc(r.text)+'</div></li>'}).join('')+'</ol>';
+    var ol='<ol class="nt-replies" aria-label="Коментари">'+reps.map(function(r){var k=n.id+'/'+r.id;return '<li class="nr"><div class="nr-head"><span class="nr-when">'+dLong(r.d)+(r.km!=null?' · '+fmtK(r.km)+' км':'')+'</span><button type="button" class="nt-tool danger" data-act="reply-del" data-id="'+esc(k)+'">'+(ui.del==='nr:'+k?'Потвърди':'Изтрий')+'</button></div><div class="nr-text">'+esc(r.text)+'</div></li>'}).join('')+'</ol>';
+    h+=done?'<details class="nt-more"><summary>'+reps.length+(reps.length===1?' коментар':' коментара')+'</summary>'+ol+'</details>':ol;
   }
-  if(ui.replyTo===n.id){
+  if(!done&&ui.replyTo===n.id){
     h+='<form class="nr-form" data-form="reply-add" data-id="'+n.id+'"><textarea id="r-text" rows="2" placeholder="Коментар, напр. „сервизът смени тампона, шумът изчезна“" required></textarea><div class="actions"><button class="btn" type="button" data-act="reply-cancel">Отказ</button><button class="btn primary" type="submit">Добави коментар</button></div></form>';
   }else{
-    h+='<button type="button" class="nt-reply" data-act="reply" data-id="'+n.id+'">'+svg('reply',16)+'<span>'+(reps.length?'Коментирай':'Добави коментар')+'</span>'+(reps.length?'<em>'+reps.length+(reps.length===1?' коментар':' коментара')+'</em>':'')+'</button>';
+    h+='<div class="nt-foot">'+(done?'':'<button type="button" class="nt-reply" data-act="reply" data-id="'+n.id+'">'+svg('reply',16)+'<span>'+(reps.length?'Коментирай':'Добави коментар')+'</span>'+(reps.length?'<em>'+reps.length+(reps.length===1?' коментар':' коментара')+'</em>':'')+'</button>')+
+      '<button type="button" class="nt-close'+(done?' re':'')+'" data-act="note-done" data-id="'+n.id+'">'+(done?svg('sync',15)+'<span>Отвори отново</span>':'<span class="nt-check"></span><span>Приключи</span>')+'</button></div>';
   }
   return h+'</article>';
 }
 ICONS.reply='<path d="M9.5 7 5 11.5 9.5 16"/><path d="M5 11.5h9a5 5 0 0 1 5 5V19"/>';
 ICONS.note='<path d="M5.5 4.5h13a1 1 0 0 1 1 1v9.5l-5 5h-9a1 1 0 0 1-1-1v-13.5a1 1 0 0 1 1-1z"/><path d="M14.5 20v-4a1 1 0 0 1 1-1h4M8.5 9h7M8.5 12.5h4"/>';
 function focusReply(){setTimeout(function(){var ta=document.getElementById('r-text');if(ta){ta.focus();try{ta.scrollIntoView({block:'center',behavior:'smooth'})}catch(e){}}},30)}
+
+function noteCountText(){var o=S.notes.filter(function(n){return !n.done}).length,c=S.notes.length-o;return o+(o===1?' отворена':' отворени')+(c?' · '+c+' приключени':'')}
+function noteDone(id){
+  var n=S.notes.find(function(x){return x.id===id});if(!n)return;
+  var was=!!n.done;
+  act(was?'Записката е отворена отново':'Записката е приключена',function(){if(was)delete n.done;else{n.done=today();delete n.pin}});
+}
 
 // ---------- Иконки по позиция (вместо обща иконка на групата) ----------
 Object.assign(ICONS,{
@@ -2183,6 +2212,8 @@ root.addEventListener('click',function(e){
   if(apptAction(a,id))return;
   if(odoAction(a))return;
   if(a==='add-menu'){openSheet({type:'add'});return}
+  if(a==='note-done'){noteDone(id);return}
+  if(a==='notes-done-toggle'){if(e&&e.preventDefault)e.preventDefault();ui.notesDoneOpen=!ui.notesDoneOpen;render();return}
   if(a==='note-new'){newNote();return}
   if(a==='reply'){ui.replyTo=id;ui.editNote=null;ui.del=null;render();focusReply();return}
   if(a==='reply-cancel'){ui.replyTo=null;render();return}
