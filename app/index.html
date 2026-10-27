@@ -266,13 +266,20 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 .tabs{display:none!important}
 .main{min-width:0}
 .nav{background:var(--surface);display:flex;flex-direction:column;gap:18px;padding:18px 14px calc(18px + env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain}
-.nav-brand{display:flex;align-items:center;gap:11px;padding:0 4px}
-.nav-thumb{width:46px;height:46px;border-radius:14px;object-fit:cover;flex:none;background:var(--sunk)}
-.nav-thumb.icon{object-fit:contain}
-.nav-car{display:flex;flex-direction:column;min-width:0;flex:1}
-.nav-car b{font-family:var(--f-display);font-weight:600;font-size:.95rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nav-car small{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.nav-x{border:0;background:var(--sunk);color:var(--fg);width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none}
+.nav{position:relative}
+.nav-brand{display:flex;flex-direction:column;gap:10px;width:100%;border:0;background:none;color:var(--fg);padding:0;text-align:left;cursor:pointer;border-radius:18px}
+.nav-brand:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.nb-photo{position:relative;display:block;width:100%;aspect-ratio:1000/630;border-radius:16px;overflow:hidden;background:var(--sunk)}
+.nb-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:filter .15s}
+@media (hover:hover){.nav-brand:hover .nb-photo img{filter:brightness(1.08)}.nav-brand:hover .nb-info b{color:var(--accent)}}
+.nb-icon{width:52px;height:52px;border-radius:16px}
+.nb-info{display:flex;flex-direction:column;gap:3px;padding:0 4px;min-width:0}
+.nb-info b{font-family:var(--f-display);font-weight:600;font-size:1.05rem;line-height:1.25;letter-spacing:-.01em;overflow-wrap:anywhere}
+.nb-info small{font-size:.8rem;color:var(--muted);line-height:1.35}
+.nb-km{display:flex;align-items:baseline;gap:5px;padding:0 4px;font-size:.84rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.nb-km b{font-family:var(--f-display);font-weight:600;font-size:1.2rem;color:var(--fg)}
+.nb-km span{margin-left:2px}
+.nav-x{position:absolute;top:calc(22px + env(safe-area-inset-top,0px));right:22px;z-index:2;border:0;background:rgba(12,20,18,.6);color:#fff;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(4px)}
 .nav-acts{display:flex;flex-direction:column;gap:8px}
 .nav-cta,.nav-sec{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:14px;padding:12px 14px;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left}
 .nav-cta{background:var(--accent);color:var(--accent-fg)}
@@ -300,9 +307,10 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
   .wrap{padding-bottom:72px!important;padding-top:12px}
   .topbar{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:18;background:var(--bg);padding:8px max(10px,env(safe-area-inset-left,0px)) 6px max(10px,env(safe-area-inset-right,0px));border-bottom:1px solid transparent;transition:border-color .2s}
   .topbar>button{border:0;background:var(--surface);color:var(--fg);width:44px;height:44px;border-radius:14px;display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);position:relative;flex:none}
-  .topbar .tb-act{background:var(--accent);color:var(--accent-fg);margin-left:auto}
-  .tb-menu .badge{position:absolute;top:-4px;right:-4px}
-  .tb-title{font-family:var(--f-display);font-weight:600;font-size:1.08rem;padding-left:6px}
+  .topbar .tb-act{background:var(--accent);color:var(--accent-fg)}
+  .topbar .on{color:var(--accent);box-shadow:var(--shadow),inset 0 0 0 1.5px var(--accent)}
+  .tb-home .badge{position:absolute;top:-5px;right:-5px}
+  .tb-title{flex:1;min-width:0;font-family:var(--f-display);font-weight:600;font-size:1.05rem;padding-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .page-head h1{display:none}
   .page-head{padding-top:0}
   .nav{position:fixed;top:0;bottom:0;left:0;width:min(300px,86vw);z-index:41;transform:translateX(-104%);transition:transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s;visibility:hidden;box-shadow:0 0 40px rgba(0,0,0,.25);border-radius:0 22px 22px 0;padding-top:calc(16px + env(safe-area-inset-top,0px))}
@@ -312,6 +320,30 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
   body.menu-open{overflow:hidden}
 }
 @media (prefers-reduced-motion:reduce){.nav,.nav-scrim{transition:none!important}}
+/* ---- notes as threads ---- */
+.nt-list{display:flex;flex-direction:column;gap:12px}
+.nt{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.nt.pinned{box-shadow:0 0 0 2px var(--accent),var(--shadow)}
+.nt-head{display:flex;align-items:center;justify-content:space-between;gap:6px 10px;flex-wrap:wrap}
+.nt-when{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.nt-when b{font-family:var(--f-display);font-weight:600;font-size:.95rem;color:var(--fg);font-variant-numeric:tabular-nums}
+.nt-tools{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.nt-tool{border:0;background:none;color:var(--muted);font-weight:600;font-size:.76rem;padding:5px 8px;border-radius:8px;cursor:pointer}
+.nt-tool:hover{background:var(--sunk);color:var(--fg)}
+.nt-tool.danger{color:var(--bad)}
+.nt .note-text{font-size:.95rem}
+.nt-edit{display:flex;flex-direction:column;gap:10px}
+.nt-replies{list-style:none;margin:2px 0 0;padding:0 0 0 14px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:10px;margin-left:4px}
+.nr{background:var(--sunk);border-radius:12px;padding:9px 12px;display:flex;flex-direction:column;gap:3px}
+.nr-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nr-when{font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.nr .nt-tool{padding:2px 6px;font-size:.72rem}
+.nr-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;font-size:.9rem}
+.nr-form{display:flex;flex-direction:column;gap:8px;margin-left:4px;padding-left:14px;border-left:2px solid var(--accent)}
+.nr-form .actions{justify-content:flex-end}
+.nt-reply{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;border:0;background:none;color:var(--accent);font-weight:600;font-size:.84rem;padding:4px 2px;cursor:pointer}
+.nt-reply em{font-style:normal;font-weight:500;color:var(--muted);font-size:.78rem}
+.nt-reply:hover span{text-decoration:underline;text-underline-offset:3px}
 .calm{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow);color:var(--muted);font-size:.9rem}
 .calm svg{color:var(--ok);flex:none}.calm b{color:var(--fg)}
 .card{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -954,7 +986,7 @@ function render(){
   if(ui.auth!=='ok'&&!hasLocalData()){root.innerHTML=loginScreen();return}
   if(ui.onboard&&ui.auth==='ok'){root.innerHTML=onboardHTML();return}
   var rows=allRows(),h=(ui.tab==='board'?header(rows):pageHead())+authBanner()+(ui.auth==='ok'?staleHTML():'');
-  h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notes():ui.tab==='settings'?settings():ui.tab==='prefs'?prefsPage():board(rows);
+  h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notesPage():ui.tab==='settings'?settings():ui.tab==='prefs'?prefsPage():board(rows);
   root.innerHTML=navHTML(rows)+topbarHTML(rows)+'<div class="main"><div class="wrap">'+h+'</div></div>'+sheetHTML();
   if(ui.auth==='ok')writeDueCache();
   document.body.style.overflow=ui.sheet?'hidden':'';
@@ -1303,7 +1335,7 @@ ICONS.x='<path d="M6 6l12 12M18 6 6 18"/>';
 ICONS.home='<path d="M4 11 12 4.5 20 11v8.5a.5.5 0 0 1-.5.5H15v-5.5H9V20H4.5a.5.5 0 0 1-.5-.5z"/>';
 ICONS.cal='<rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>';
 ICONS.cog='<circle cx="12" cy="12" r="3"/><path d="M19.4 13.6a7.7 7.7 0 0 0 0-3.2l2-1.5-2-3.5-2.3 1a7.6 7.6 0 0 0-2.8-1.6L14 2.5h-4l-.3 2.3a7.6 7.6 0 0 0-2.8 1.6l-2.3-1-2 3.5 2 1.5a7.7 7.7 0 0 0 0 3.2l-2 1.5 2 3.5 2.3-1a7.6 7.6 0 0 0 2.8 1.6l.3 2.3h4l.3-2.3a7.6 7.6 0 0 0 2.8-1.6l2.3 1 2-3.5z"/>';
-var NAV_MAIN=[['board','Табло','home'],['schedule','График','cal'],['notes','Записки','pen'],['history','История','clock']];
+var NAV_MAIN=[['board','Табло','home'],['schedule','График','cal'],['notes','Записки','note'],['history','История','clock']];
 var NAV_CONF=[['settings','Интервали','sliders'],['prefs','Настройки','cog']];
 var TAB_TITLE={board:'Табло',schedule:'График',notes:'Записки',history:'История',settings:'Интервали',prefs:'Настройки'};
 function menuIsOpen(){var b=document.body;return !!(b&&b.classList&&b.classList.contains('menu-open'))}
@@ -1312,7 +1344,8 @@ function navHTML(rows){
   var c=cur(),att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'});
   function it(t){var on=ui.tab===t[0];return '<button type="button" class="nav-i" data-act="tab" data-v="'+t[0]+'"'+(on?' aria-current="page"':'')+'>'+svg(t[2],20)+'<span>'+t[1]+'</span>'+(t[0]==='board'&&att?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+'</button>'}
   var h='<div class="nav-scrim" data-act="menu-close"></div><aside class="nav" id="nav" aria-label="Меню">';
-  h+='<div class="nav-brand">'+(S.car.photo?'<img class="nav-thumb" src="'+S.car.photo+'" alt="" style="'+pvStyle(S.car.photoView)+'">':'<img class="nav-thumb icon" src="icons/icon-192.png" alt="">')+'<span class="nav-car"><b>'+esc(S.car.name)+'</b><small>'+fmtK(c.km)+' км · '+fmtD(c.d)+'</small></span><button type="button" class="nav-x" data-act="menu-close" aria-label="Затвори менюто">'+svg('x',20)+'</button></div>';
+  h+='<button type="button" class="nav-x" data-act="menu-close" aria-label="Затвори менюто">'+svg('x',20)+'</button>';
+  h+='<button type="button" class="nav-brand'+(S.car.photo?'':' no-photo')+'" data-act="tab" data-v="board" aria-label="Към таблото">'+(S.car.photo?'<span class="nb-photo"><img src="'+S.car.photo+'" alt="" style="'+pvStyle(S.car.photoView)+'"></span>':'<img class="nb-icon" src="icons/icon-192.png" alt="">')+'<span class="nb-info"><b>'+esc(S.car.name)+'</b>'+(S.car.sub?'<small>'+esc(S.car.sub)+'</small>':'')+'</span><span class="nb-km"><b>'+fmtK(c.km)+'</b> км<span>· '+fmtD(c.d)+'</span></span></button>';
   h+='<div class="nav-acts"><button type="button" class="nav-cta" data-act="visit">'+svg('plus',18)+'<span>Запиши посещение</span></button><button type="button" class="nav-sec" data-act="odo">'+svg('gauge',18)+'<span>Обнови километража</span></button></div>';
   h+='<nav class="nav-list" aria-label="Раздели">'+NAV_MAIN.map(it).join('')+'<span class="nav-lbl">Настройка</span>'+NAV_CONF.map(it).join('')+'</nav>';
   h+='<div class="nav-foot">'+(auth&&auth.email?'<span>'+esc(auth.email)+'</span>':'')+'</div></aside>';
@@ -1320,7 +1353,11 @@ function navHTML(rows){
 }
 function topbarHTML(rows){
   var att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'});
-  return '<div class="topbar"><button type="button" class="tb-menu" data-act="menu" aria-label="Меню" aria-controls="nav" aria-expanded="'+menuIsOpen()+'">'+svg('menu',22)+(att&&ui.tab!=='board'?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+'</button><span class="tb-title">'+(TAB_TITLE[ui.tab]||'')+'</span><button type="button" class="tb-act" data-act="visit" aria-label="Запиши посещение" title="Запиши посещение">'+svg('plus',20)+'</button></div>';
+  return '<div class="topbar"><button type="button" class="tb-menu" data-act="menu" aria-label="Меню" aria-controls="nav" aria-expanded="'+menuIsOpen()+'">'+svg('menu',22)+'</button>'+
+    '<button type="button" class="tb-home'+(ui.tab==='board'?' on':'')+'" data-act="tab" data-v="board" aria-label="Табло">'+svg('home',20)+(att?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+'</button>'+
+    '<span class="tb-title">'+(TAB_TITLE[ui.tab]||'')+'</span>'+
+    '<button type="button" class="tb-notes'+(ui.tab==='notes'?' on':'')+'" data-act="tab" data-v="notes" aria-label="Записки" title="Записки">'+svg('note',20)+'</button>'+
+    '<button type="button" class="tb-act" data-act="visit" aria-label="Запиши посещение" title="Запиши посещение">'+svg('plus',20)+'</button></div>';
 }
 function pageHead(){
   return '<div class="page-head"><h1>'+(TAB_TITLE[ui.tab]||'')+'</h1><div class="save'+(saveCls?' '+saveCls:'')+'" id="save">'+esc(saveText())+'</div></div>';
@@ -1338,6 +1375,45 @@ function prefsPage(){
   if(!ui.push&&!ui.pushLoading){ui.pushLoading=true;setTimeout(refreshPush,0)}
   return carSettingsHTML()+notifySettingsHTML()+readingsHTML()+versionsSectionHTML()+dataSettingsHTML();
 }
+
+// ---------- Записки като нишки: записка + коментари под нея ----------
+function noteLast(n){var d=n.d;(n.replies||[]).forEach(function(r){if(r.d>d)d=r.d});return d}
+function noteMatches(n,q){if(n.text.toLowerCase().indexOf(q)>=0)return true;return (n.replies||[]).some(function(r){return r.text.toLowerCase().indexOf(q)>=0})}
+function dLong(s){var p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
+function notesPage(){
+  var c=cur(),t=today(),q=(ui.nq||'').trim().toLowerCase();
+  var list=S.notes.slice().sort(function(a,b){var la=noteLast(a),lb=noteLast(b);return (b.pin?1:0)-(a.pin?1:0)||(la<lb?1:la>lb?-1:(a.id<b.id?1:-1))});
+  if(q)list=list.filter(function(n){return noteMatches(n,q)});
+  var h='<section><div class="sec-head"><h2 class="sr">Записки</h2><span class="muted" style="font-size:.82rem">'+S.notes.length+(S.notes.length===1?' записка':' записки')+'</span></div>';
+  h+='<form class="box note-new" data-form="note-add"><label class="f">Нова записка<textarea id="n-text" rows="3" placeholder="напр. лек шум отпред вдясно при неравности, да се каже на сервиза" required></textarea></label><div class="note-row"><label class="f w-date">Дата<input type="date" id="n-date" value="'+t+'"></label><label class="f w-km">Км<input type="number" id="n-km" min="0" step="1" inputmode="numeric" value="'+c.km+'"></label><label class="chk" style="align-self:flex-end"><input type="checkbox" id="n-pin"><span>Закачи най-горе</span></label><button class="btn primary" type="submit" style="margin-left:auto">Запиши</button></div></form>';
+  if(S.notes.length>3)h+='<label class="f"><span class="sr">Търсене</span><input type="search" id="n-q" placeholder="Търси в записките и коментарите" value="'+esc(ui.nq||'')+'"></label>';
+  if(!S.notes.length)h+='<div class="empty">Още няма записки. Тук можете да пишете наблюдения, въпроси за сервиза, номера на части, контакти. Под всяка записка после може да добавяте коментари, например какво е казал сервизът.</div>';
+  else if(!list.length)h+='<div class="empty">Нищо не съвпада с „'+esc(ui.nq)+'“.</div>';
+  else h+='<div class="nt-list">'+list.map(noteCard).join('')+'</div>';
+  return h+'</section>';
+}
+function noteCard(n){
+  var reps=(n.replies||[]).slice().sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:(a.id<b.id?-1:1)});
+  var h='<article class="nt'+(n.pin?' pinned':'')+'" id="nt-'+n.id+'">';
+  h+='<div class="nt-head"><span class="nt-when"><b>'+dLong(n.d)+'</b>'+(n.km!=null?'<span>'+fmtK(n.km)+' км</span>':'')+(n.pin?'<span class="tag">закачена</span>':'')+'</span>';
+  if(ui.editNote!==n.id)h+='<span class="nt-tools"><button type="button" class="nt-tool" data-act="note-pin" data-id="'+n.id+'">'+(n.pin?'Откачи':'Закачи')+'</button><button type="button" class="nt-tool" data-act="note-edit" data-id="'+n.id+'">Редактирай</button><button type="button" class="nt-tool danger" data-act="note-del" data-id="'+n.id+'">'+(ui.del==='n:'+n.id?'Потвърди'+(reps.length?' (с '+reps.length+' коментара)':''):'Изтрий')+'</button></span>';
+  h+='</div>';
+  if(ui.editNote===n.id){
+    h+='<form class="nt-edit" data-form="note-save" data-id="'+n.id+'"><textarea id="ne-text" rows="4" required>'+esc(n.text)+'</textarea><div class="note-row"><label class="f w-date">Дата<input type="date" id="ne-date" value="'+n.d+'"></label><label class="f w-km">Км<input type="number" id="ne-km" min="0" step="1" value="'+(n.km!=null?n.km:'')+'"></label><span class="actions" style="margin-left:auto"><button class="btn" type="button" data-act="note-cancel">Отказ</button><button class="btn primary" type="submit">Запази</button></span></div></form>';
+  }else h+='<div class="note-text">'+esc(n.text)+'</div>';
+  if(reps.length){
+    h+='<ol class="nt-replies" aria-label="Коментари">'+reps.map(function(r){var k=n.id+'/'+r.id;return '<li class="nr"><div class="nr-head"><span class="nr-when">'+dLong(r.d)+(r.km!=null?' · '+fmtK(r.km)+' км':'')+'</span><button type="button" class="nt-tool danger" data-act="reply-del" data-id="'+esc(k)+'">'+(ui.del==='nr:'+k?'Потвърди':'Изтрий')+'</button></div><div class="nr-text">'+esc(r.text)+'</div></li>'}).join('')+'</ol>';
+  }
+  if(ui.replyTo===n.id){
+    h+='<form class="nr-form" data-form="reply-add" data-id="'+n.id+'"><textarea id="r-text" rows="2" placeholder="Коментар, напр. „сервизът смени тампона, шумът изчезна“" required></textarea><div class="actions"><button class="btn" type="button" data-act="reply-cancel">Отказ</button><button class="btn primary" type="submit">Добави коментар</button></div></form>';
+  }else if(ui.editNote!==n.id){
+    h+='<button type="button" class="nt-reply" data-act="reply" data-id="'+n.id+'">'+svg('reply',16)+'<span>'+(reps.length?'Коментирай':'Добави коментар')+'</span>'+(reps.length?'<em>'+reps.length+(reps.length===1?' коментар':' коментара')+'</em>':'')+'</button>';
+  }
+  return h+'</article>';
+}
+ICONS.reply='<path d="M9.5 7 5 11.5 9.5 16"/><path d="M5 11.5h9a5 5 0 0 1 5 5V19"/>';
+ICONS.note='<path d="M5.5 4.5h13a1 1 0 0 1 1 1v9.5l-5 5h-9a1 1 0 0 1-1-1v-13.5a1 1 0 0 1 1-1z"/><path d="M14.5 20v-4a1 1 0 0 1 1-1h4M8.5 9h7M8.5 12.5h4"/>';
+function focusReply(){setTimeout(function(){var ta=document.getElementById('r-text');if(ta){ta.focus();try{ta.scrollIntoView({block:'center',behavior:'smooth'})}catch(e){}}},30)}
 
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
 var pullTimer=null;
@@ -1509,6 +1585,9 @@ root.addEventListener('click',function(e){
   if(a==='push-off'){disablePush();return}
   if(a==='push-test'){testNotification();return}
   if(a==='push-copy'){var pc=ui.push&&ui.push.sub||'';ui.pushCodeOpen=true;var sel=function(){var ta=document.getElementById('push-code');if(ta){ta.focus();ta.select()}toast('Кодът е маркиран – копирайте с Ctrl+C / „Копиране“',false,5000)};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(pc).then(function(){toast('Кодът е копиран',false,3000)},sel);else sel();return}
+  if(a==='reply'){ui.replyTo=id;ui.editNote=null;ui.del=null;render();focusReply();return}
+  if(a==='reply-cancel'){ui.replyTo=null;render();return}
+  if(a==='reply-del'){var rp=String(id).split('/');if(ui.del!=='nr:'+id){ui.del='nr:'+id;render();return}act('Коментарът е изтрит',function(){var rn=S.notes.find(function(n){return n.id===rp[0]});if(rn&&rn.replies){rn.replies=rn.replies.filter(function(r){return r.id!==rp[1]});if(!rn.replies.length)delete rn.replies}});return}
   if(a==='retry'){setSave('Свързване…');if(dirty)push();else pull();return}
   if(a==='vers'){if(!gs()){ui.versions={err:'Достъпно само през Google адреса на книжката.'};render();return}
     ui.versLoading=true;render();
@@ -1595,6 +1674,9 @@ function handleForm(f){
   if(k==='note-add'){
     var nt=val('n-text').trim();if(!nt)return;var nd=val('n-date')||today(),nk=parseInt(val('n-km'),10),npin=document.getElementById('n-pin').checked;
     act('Записката е добавена',function(){var n={id:uid(),d:nd,text:nt};if(!isNaN(nk))n.km=nk;if(npin)n.pin=true;S.notes.push(n)});return}
+  if(k==='reply-add'){
+    var rid=f.getAttribute('data-id'),rt=val('r-text').trim();if(!rt)return;var rkm=cur().km;
+    ui.replyTo=null;act('Коментарът е добавен',function(){var rn=S.notes.find(function(n){return n.id===rid});if(!rn)return;(rn.replies=rn.replies||[]).push({id:uid(),d:today(),km:rkm,text:rt})});return}
   if(k==='note-save'){
     var en=S.notes.find(function(n){return n.id===f.getAttribute('data-id')});if(!en)return;var et=val('ne-text').trim();if(!et)return;var ed=val('ne-date')||en.d,ek=parseInt(val('ne-km'),10);
     ui.editNote=null;act('Записката е запазена',function(){en.text=et;en.d=ed;if(isNaN(ek))delete en.km;else en.km=ek});return}
