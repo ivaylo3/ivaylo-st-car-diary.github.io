@@ -366,6 +366,17 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 .sync-res.warn{background:var(--warn-bg);color:var(--warn);font-weight:600;font-size:.92rem}
 @media (max-width:999.98px){.topbar>button{width:42px;height:42px}}
 @media (max-width:380px){.topbar{gap:6px}.topbar>button{width:38px;height:38px;border-radius:12px}}
+.nt-bar{display:flex;align-items:center;gap:10px}
+.nt-search{flex:1;min-width:0;position:relative;display:flex;align-items:center}
+.nt-search svg{position:absolute;left:12px;color:var(--muted);pointer-events:none}
+.nt-search input{width:100%;padding-left:36px}
+.nt-count{flex:1;font-size:.86rem}
+.nt-new{flex:none}
+.nt{padding:16px 18px;gap:12px}
+.nt .note-text{font-size:1rem;line-height:1.65}
+.nt-head{opacity:.95}
+@media (hover:hover){.nt .nt-tools{opacity:.55;transition:opacity .15s}.nt:hover .nt-tools,.nt:focus-within .nt-tools{opacity:1}}
+@media (max-width:520px){.nt{padding:14px 15px}}
 /* ---- service appointments ---- */
 .nav-pill{margin-left:auto;font-size:.68rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:999px;white-space:nowrap}
 .nav-i[aria-current="page"] .nav-pill{background:var(--surface)}
@@ -1039,7 +1050,8 @@ function sheetHTML(){
   if(!ui.sheet)return '';
   var c=cur(),t=today(),s=ui.sheet,title='',sub='',body='';
   var actions='<div class="sheet-actions"><button type="button" class="btn" data-act="close">Отказ</button><button class="btn primary" type="submit">Запиши</button></div>';
-  if(s.type==='add'){var adS=addSheet();title=adS.title;sub=adS.sub;body=adS.body;
+  if(s.type==='note'){var ntS=noteSheet(s);title=ntS.title;sub=ntS.sub;body=ntS.body;
+  }else if(s.type==='add'){var adS=addSheet();title=adS.title;sub=adS.sub;body=adS.body;
   }else if(s.type==='sync'){var syS=syncSheet();title=syS.title;sub=syS.sub;body=syS.body;
   }else if(s.type==='appt'){var apS=apptSheet(s);title=apS.title;sub=apS.sub;body=apS.body;
   }else if(s.type==='photo'){
@@ -1478,7 +1490,7 @@ function addSheet(){
   var it=[['visit','plus','Запиши посещение','Отметнете какво е направено в сервиза'],['appt-new','calplus','Запази час за сервиз','С напомняне в календара и известие'],['note-new','note','Нова записка','Наблюдение, въпрос към сервиза, номер на част'],['odo','gauge','Обнови километража','Ръчно или от MyŠkoda']];
   return {title:'Добави',sub:'',body:'<div class="add-list">'+it.map(function(x){return '<button type="button" class="add-i" data-act="'+x[0]+'"><span class="add-ico">'+svg(x[1],20)+'</span><span class="add-t"><b>'+x[2]+'</b><small>'+x[3]+'</small></span>'+svg('chev',16)+'</button>'}).join('')+'</div>'};
 }
-function newNote(){ui.sheet=null;ui.tab='notes';lsSet('kq-tab','notes');render();setTimeout(function(){var ta=document.getElementById('n-text');if(ta){ta.focus();try{ta.scrollIntoView({block:'center'})}catch(e){}}},40)}
+function newNote(){openNoteSheet(null)}
 function pageHead(){
   return '<div class="page-head"><h1>'+(TAB_TITLE[ui.tab]||'')+'</h1><div class="save'+(saveCls?' '+saveCls:'')+'" id="save">'+esc(saveText())+'</div></div>';
 }
@@ -1501,32 +1513,38 @@ function noteLast(n){var d=n.d;(n.replies||[]).forEach(function(r){if(r.d>d)d=r.
 function noteMatches(n,q){if(n.text.toLowerCase().indexOf(q)>=0)return true;return (n.replies||[]).some(function(r){return r.text.toLowerCase().indexOf(q)>=0})}
 function dLong(s){var p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
 function notesPage(){
-  var c=cur(),t=today(),q=(ui.nq||'').trim().toLowerCase();
+  var q=(ui.nq||'').trim().toLowerCase();
   var list=S.notes.slice().sort(function(a,b){var la=noteLast(a),lb=noteLast(b);return (b.pin?1:0)-(a.pin?1:0)||(la<lb?1:la>lb?-1:(a.id<b.id?1:-1))});
   if(q)list=list.filter(function(n){return noteMatches(n,q)});
-  var h='<section><div class="sec-head"><h2 class="sr">Записки</h2><span class="muted" style="font-size:.82rem">'+S.notes.length+(S.notes.length===1?' записка':' записки')+'</span></div>';
-  h+='<form class="box note-new" data-form="note-add"><label class="f">Нова записка<textarea id="n-text" rows="3" placeholder="напр. лек шум отпред вдясно при неравности, да се каже на сервиза" required></textarea></label><div class="note-row"><label class="f w-date">Дата<input type="date" id="n-date" value="'+t+'"></label><label class="f w-km">Км<input type="number" id="n-km" min="0" step="1" inputmode="numeric" value="'+c.km+'"></label><label class="chk" style="align-self:flex-end"><input type="checkbox" id="n-pin"><span>Закачи най-горе</span></label><button class="btn primary" type="submit" style="margin-left:auto">Запиши</button></div></form>';
-  if(S.notes.length>3)h+='<label class="f"><span class="sr">Търсене</span><input type="search" id="n-q" placeholder="Търси в записките и коментарите" value="'+esc(ui.nq||'')+'"></label>';
-  if(!S.notes.length)h+='<div class="empty">Още няма записки. Тук можете да пишете наблюдения, въпроси за сервиза, номера на части, контакти. Под всяка записка после може да добавяте коментари, например какво е казал сервизът.</div>';
+  var h='<section><h2 class="sr">Записки</h2>';
+  h+='<div class="nt-bar">'+(S.notes.length>3?'<label class="nt-search"><span class="sr">Търсене</span>'+svg('filter',16)+'<input type="search" id="n-q" placeholder="Търси в записките" value="'+esc(ui.nq||'')+'"></label>':'<span class="muted nt-count">'+S.notes.length+(S.notes.length===1?' записка':' записки')+'</span>')+'<button type="button" class="btn primary nt-new" data-act="note-new">'+svg('plus',18)+'<span>Нова записка</span></button></div>';
+  if(!S.notes.length)h+='<div class="empty">Още няма записки. Натиснете „Нова записка“ – наблюдения, въпроси към сервиза, номера на части, контакти. Под всяка записка после може да добавяте коментари.</div>';
   else if(!list.length)h+='<div class="empty">Нищо не съвпада с „'+esc(ui.nq)+'“.</div>';
   else h+='<div class="nt-list">'+list.map(noteCard).join('')+'</div>';
   return h+'</section>';
 }
+// прозорец „Нова записка“ / „Редакция“
+function noteSheet(s){
+  var n=s.id?S.notes.find(function(x){return x.id===s.id}):null,c=cur(),t=today();
+  var b=n?'<form class="sheet-form" data-form="note-save" data-id="'+n.id+'"><label class="f">Текст<textarea id="ne-text" rows="6" required>'+esc(n.text)+'</textarea></label><div class="fields"><label class="f">Дата<input type="date" id="ne-date" value="'+n.d+'"></label><label class="f">Км<input type="number" id="ne-km" min="0" step="1" inputmode="numeric" value="'+(n.km!=null?n.km:'')+'"></label></div>'
+        :'<form class="sheet-form" data-form="note-add"><label class="f">Текст<textarea id="n-text" rows="6" placeholder="напр. лек шум отпред вдясно при неравности, да се каже на сервиза" required></textarea></label><div class="fields"><label class="f">Дата<input type="date" id="n-date" value="'+t+'"></label><label class="f">Км<input type="number" id="n-km" min="0" step="1" inputmode="numeric" value="'+c.km+'"></label></div><label class="chk"><input type="checkbox" id="n-pin"><span>Закачи най-горе</span></label>';
+  b+='<div class="sheet-actions"><button type="button" class="btn" data-act="close">Отказ</button><button class="btn primary" type="submit">'+(n?'Запази':'Добави записката')+'</button></div></form>';
+  return {title:n?'Редакция на записка':'Нова записка',sub:n?'':'Датата и километражът се попълват сами.',body:b};
+}
+function openNoteSheet(id){ui.tab='notes';lsSet('kq-tab','notes');openSheet({type:'note',id:id||null});setTimeout(function(){var ta=document.getElementById(id?'ne-text':'n-text');if(ta&&ta.focus){ta.focus();if(id)try{ta.setSelectionRange(ta.value.length,ta.value.length)}catch(e){}}},60)}
 function noteCard(n){
   var reps=(n.replies||[]).slice().sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:(a.id<b.id?-1:1)});
   var h='<article class="nt'+(n.pin?' pinned':'')+'" id="nt-'+n.id+'">';
   h+='<div class="nt-head"><span class="nt-when"><b>'+dLong(n.d)+'</b>'+(n.km!=null?'<span>'+fmtK(n.km)+' км</span>':'')+(n.pin?'<span class="tag">закачена</span>':'')+'</span>';
-  if(ui.editNote!==n.id)h+='<span class="nt-tools"><button type="button" class="nt-tool" data-act="note-pin" data-id="'+n.id+'">'+(n.pin?'Откачи':'Закачи')+'</button><button type="button" class="nt-tool" data-act="note-edit" data-id="'+n.id+'">Редактирай</button><button type="button" class="nt-tool danger" data-act="note-del" data-id="'+n.id+'">'+(ui.del==='n:'+n.id?'Потвърди'+(reps.length?' (с '+reps.length+' коментара)':''):'Изтрий')+'</button></span>';
+  h+='<span class="nt-tools"><button type="button" class="nt-tool" data-act="note-pin" data-id="'+n.id+'">'+(n.pin?'Откачи':'Закачи')+'</button><button type="button" class="nt-tool" data-act="note-edit" data-id="'+n.id+'">Редактирай</button><button type="button" class="nt-tool danger" data-act="note-del" data-id="'+n.id+'">'+(ui.del==='n:'+n.id?'Потвърди'+(reps.length?' (с '+reps.length+' коментара)':''):'Изтрий')+'</button></span>';
   h+='</div>';
-  if(ui.editNote===n.id){
-    h+='<form class="nt-edit" data-form="note-save" data-id="'+n.id+'"><textarea id="ne-text" rows="4" required>'+esc(n.text)+'</textarea><div class="note-row"><label class="f w-date">Дата<input type="date" id="ne-date" value="'+n.d+'"></label><label class="f w-km">Км<input type="number" id="ne-km" min="0" step="1" value="'+(n.km!=null?n.km:'')+'"></label><span class="actions" style="margin-left:auto"><button class="btn" type="button" data-act="note-cancel">Отказ</button><button class="btn primary" type="submit">Запази</button></span></div></form>';
-  }else h+='<div class="note-text">'+esc(n.text)+'</div>';
+  h+='<div class="note-text">'+esc(n.text)+'</div>';
   if(reps.length){
     h+='<ol class="nt-replies" aria-label="Коментари">'+reps.map(function(r){var k=n.id+'/'+r.id;return '<li class="nr"><div class="nr-head"><span class="nr-when">'+dLong(r.d)+(r.km!=null?' · '+fmtK(r.km)+' км':'')+'</span><button type="button" class="nt-tool danger" data-act="reply-del" data-id="'+esc(k)+'">'+(ui.del==='nr:'+k?'Потвърди':'Изтрий')+'</button></div><div class="nr-text">'+esc(r.text)+'</div></li>'}).join('')+'</ol>';
   }
   if(ui.replyTo===n.id){
     h+='<form class="nr-form" data-form="reply-add" data-id="'+n.id+'"><textarea id="r-text" rows="2" placeholder="Коментар, напр. „сервизът смени тампона, шумът изчезна“" required></textarea><div class="actions"><button class="btn" type="button" data-act="reply-cancel">Отказ</button><button class="btn primary" type="submit">Добави коментар</button></div></form>';
-  }else if(ui.editNote!==n.id){
+  }else{
     h+='<button type="button" class="nt-reply" data-act="reply" data-id="'+n.id+'">'+svg('reply',16)+'<span>'+(reps.length?'Коментирай':'Добави коментар')+'</span>'+(reps.length?'<em>'+reps.length+(reps.length===1?' коментар':' коментара')+'</em>':'')+'</button>';
   }
   return h+'</article>';
@@ -2190,7 +2208,7 @@ root.addEventListener('click',function(e){
   if(a==='detail'){openSheet({type:'item',id:id});return}
   if(a==='horizon'){ui.horizon=+v;render();return}
   if(a==='expand'){ui.open=ui.open===id?null:id;render();return}
-  if(a==='note-edit'){ui.editNote=id;ui.del=null;render();var ta=document.getElementById('ne-text');if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}return}
+  if(a==='note-edit'){openNoteSheet(id);return}
   if(a==='note-cancel'){ui.editNote=null;render();return}
   if(a==='note-pin'){var np=S.notes.find(function(n){return n.id===id});if(np)act(np.pin?'Записката е откачена':'Записката е закачена',function(){if(np.pin)delete np.pin;else np.pin=true});return}
   if(a==='note-del'){if(ui.del!=='n:'+id){ui.del='n:'+id;render();return}act('Записката е изтрита',function(){S.notes=S.notes.filter(function(n){return n.id!==id})});return}
