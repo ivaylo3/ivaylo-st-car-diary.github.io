@@ -259,6 +259,59 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 .ntf-st .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
 .ntf-st.on .dot{background:var(--ok);box-shadow:0 0 0 4px var(--ok-bg)}
 #push-code{font-family:ui-monospace,Menlo,monospace;font-size:.72rem;line-height:1.4;min-height:80px}
+/* ---- buttons in a row: same height, centred content, spacing ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1.2}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+/* ---- navigation ---- */
+.tabs{display:none!important}
+.main{min-width:0}
+.nav{background:var(--surface);display:flex;flex-direction:column;gap:18px;padding:18px 14px calc(18px + env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain}
+.nav-brand{display:flex;align-items:center;gap:11px;padding:0 4px}
+.nav-thumb{width:46px;height:46px;border-radius:14px;object-fit:cover;flex:none;background:var(--sunk)}
+.nav-thumb.icon{object-fit:contain}
+.nav-car{display:flex;flex-direction:column;min-width:0;flex:1}
+.nav-car b{font-family:var(--f-display);font-weight:600;font-size:.95rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-car small{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.nav-x{border:0;background:var(--sunk);color:var(--fg);width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none}
+.nav-acts{display:flex;flex-direction:column;gap:8px}
+.nav-cta,.nav-sec{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:14px;padding:12px 14px;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left}
+.nav-cta{background:var(--accent);color:var(--accent-fg)}
+.nav-cta:hover{filter:brightness(1.07)}
+.nav-sec{background:var(--sunk);color:var(--fg)}
+.nav-sec:hover{background:var(--accent-soft);color:var(--accent)}
+.nav-list{display:flex;flex-direction:column;gap:2px}
+.nav-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:var(--muted);padding:10px 12px;border-radius:12px;font-weight:600;font-size:.92rem;cursor:pointer;text-align:left}
+.nav-i:hover{background:var(--sunk);color:var(--fg)}
+.nav-i[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.nav-i .badge{margin-left:auto}
+.nav-lbl{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:16px 12px 6px;opacity:.8}
+.nav-foot{margin-top:auto;padding:0 6px;font-size:.74rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.page-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:6px}
+.page-head h1{font-family:var(--f-display);font-weight:600;font-size:clamp(1.35rem,3vw,1.75rem);letter-spacing:-.015em}
+.page-head .save{padding:0}
+.topbar{display:none}
+.nav-scrim{display:none}
+@media (min-width:1000px){
+  .nav{position:fixed;top:0;bottom:0;left:0;width:256px;border-right:1px solid var(--line);z-index:20;padding-top:calc(20px + env(safe-area-inset-top,0px))}
+  .nav-x{display:none}
+  .main{margin-left:256px}
+}
+@media (max-width:999.98px){
+  .wrap{padding-bottom:72px!important;padding-top:12px}
+  .topbar{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:18;background:var(--bg);padding:8px max(10px,env(safe-area-inset-left,0px)) 6px max(10px,env(safe-area-inset-right,0px));border-bottom:1px solid transparent;transition:border-color .2s}
+  .topbar>button{border:0;background:var(--surface);color:var(--fg);width:44px;height:44px;border-radius:14px;display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);position:relative;flex:none}
+  .topbar .tb-act{background:var(--accent);color:var(--accent-fg);margin-left:auto}
+  .tb-menu .badge{position:absolute;top:-4px;right:-4px}
+  .tb-title{font-family:var(--f-display);font-weight:600;font-size:1.08rem;padding-left:6px}
+  .page-head h1{display:none}
+  .page-head{padding-top:0}
+  .nav{position:fixed;top:0;bottom:0;left:0;width:min(300px,86vw);z-index:41;transform:translateX(-104%);transition:transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s;visibility:hidden;box-shadow:0 0 40px rgba(0,0,0,.25);border-radius:0 22px 22px 0;padding-top:calc(16px + env(safe-area-inset-top,0px))}
+  body.menu-open .nav{transform:none;visibility:visible;transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+  .nav-scrim{display:block;position:fixed;inset:0;z-index:40;background:rgba(5,10,9,.45);opacity:0;pointer-events:none;transition:opacity .2s}
+  body.menu-open .nav-scrim{opacity:1;pointer-events:auto}
+  body.menu-open{overflow:hidden}
+}
+@media (prefers-reduced-motion:reduce){.nav,.nav-scrim{transition:none!important}}
 .calm{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow);color:var(--muted);font-size:.9rem}
 .calm svg{color:var(--ok);flex:none}.calm b{color:var(--fg)}
 .card{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -455,7 +508,7 @@ function ssGet(k){try{return JSON.parse(sessionStorage.getItem(k))}catch(e){retu
 function ssSet(k,v){try{sessionStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function ssDel(k){try{sessionStorage.removeItem(k)}catch(e){}}
 var ui={tab:lsGet('kq-tab')||'board',view:lsGet('kq-view')||'time',year:'all',sheet:null,del:null,auth:'need',authMsg:'',authBusy:false,onboard:false};
-if(['board','history','notes','settings','schedule'].indexOf(ui.tab)<0)ui.tab='board';ui.horizon=24;ui.nq='';ui.editNote=null;ui.open=null;
+if(['board','history','notes','settings','schedule','prefs'].indexOf(ui.tab)<0)ui.tab='board';ui.horizon=24;ui.nq='';ui.editNote=null;ui.open=null;
 var art=null,readOnly=false,saveTimer=null,justOpened=false;
 var root=document.getElementById('root');
 var toastEl=document.createElement('div');toastEl.className='toast';toastEl.hidden=true;toastEl.setAttribute('role','status');document.body.appendChild(toastEl);
@@ -704,7 +757,7 @@ function occurrences(months){
 }
 function schedule(){
   var occ=occurrences(),t=today();
-  var h='<section><div class="sec-head"><div class="back-wrap"><button type="button" class="back" data-act="tab" data-v="board">'+svg('chev',16)+'Табло</button><h2>График за обслужване</h2></div></div>';
+  var h='<section><div class="sec-head"><div class="back-wrap"><button type="button" class="back" data-act="tab" data-v="board">'+svg('chev',16)+'Табло</button><h2 class="sr">График за обслужване</h2></div></div>';
   h+='<p class="foot">Следващата смяна или плащане за всяка позиция, подредени по дата. Когато нещо се изпълни, тук се появява новият срок, изчислен от записа. При позиции само с километри датата е приблизителна, по средния ви пробег (отбелязано с ≈).</p>';
   if(!occ.length)return h+'<div class="empty">Нищо не предстои в избрания период.</div></section>';
   var curM='';
@@ -722,8 +775,6 @@ function header(rows){
   var att=rows.filter(function(o){return o.x.st!=='ok'}).length,bad=rows.some(function(o){return o.x.st==='bad'});
   var h='<header class="hero">'+(S.car.photo?'<div class="hero-photo has-img"><img src="'+S.car.photo+'" alt="Снимка на колата" style="'+pvStyle(S.car.photoView)+'"><button type="button" class="ph-edit" data-act="photo-edit">'+svg('sliders',16)+'<span>Нагласи</span></button></div>':'<label class="hero-photo empty">'+svg('camera',26)+'<span>Добави снимка на колата</span><input type="file" id="car-file" accept="image/*" class="sr"></label>')+'<div class="hero-card"><div class="hero-id"><span class="eyebrow">'+esc(S.car.sub)+'</span><h1>'+esc(S.car.name)+'</h1>'+(S.car.vin?'<div class="vin"><span class="vin-l">VIN</span><span class="num" id="vin-t">'+esc(S.car.vin)+'</span><button type="button" class="link" data-act="copy-vin">Копирай</button></div>':'')+'</div>';
   h+='<button type="button" class="odo-btn" data-act="odo" aria-label="Обнови километража"><span class="odo-n">'+fmtK(c.km)+'<small> км</small></span><span class="odo-s">към '+fmtD(c.d)+(r?' · ≈ '+fmtK(r*365)+' км/год.':'')+'</span><span class="odo-cta">Обнови</span></button></div><div class="save'+(saveCls?' '+saveCls:'')+'" id="save">'+esc(saveText())+'</div></header>';
-  function tb(t){return '<button class="tab" role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(ui.tab===t[0])+'">'+svg(t[2],20)+'<span>'+t[1]+'</span>'+(t[3]?'<b class="badge'+(bad?' bad':'')+'">'+t[3]+'</b>':'')+'</button>'}
-  h+='<nav class="tabs" role="tablist" aria-label="Раздели"><div class="tabs-main">'+[['board','Табло','gauge',att],['notes','Записки','pen',0]].map(tb).join('')+'</div><div class="tabs-sub">'+[['history','История','clock',0],['settings','Интервали','sliders',0]].map(tb).join('')+'</div></nav>';
   return h;
 }
 function scheduleTeaser(){
@@ -768,7 +819,7 @@ function history(){
   if(ui.year!=='all'&&years.indexOf(ui.year)<0)ui.year='all';
   var sel=ui.year==='all'?gs:gs.filter(function(g){return g.d.slice(0,4)===ui.year});
   var svc=0,dcs=0;sel.forEach(function(g){if(g.doc)dcs+=g.cost;else svc+=g.cost});
-  var h='<section><div class="sec-head"><h2>История</h2>'+(years.length>1?'<div class="seg" role="group" aria-label="Година"><button type="button" data-act="year" data-v="all" aria-pressed="'+(ui.year==='all')+'">Всички</button>'+years.map(function(y){return '<button type="button" data-act="year" data-v="'+y+'" aria-pressed="'+(ui.year===y)+'">'+y+'</button>'}).join('')+'</div>':'')+'</div>';
+  var h='<section><div class="sec-head"><h2 class="sr">История</h2>'+(years.length>1?'<div class="seg" role="group" aria-label="Година"><button type="button" data-act="year" data-v="all" aria-pressed="'+(ui.year==='all')+'">Всички</button>'+years.map(function(y){return '<button type="button" data-act="year" data-v="'+y+'" aria-pressed="'+(ui.year===y)+'">'+y+'</button>'}).join('')+'</div>':'')+'</div>';
   h+='<div class="tiles"><div class="tile"><span class="eyebrow">Обслужване</span><span class="num">'+fmtE(svc)+'</span></div><div class="tile"><span class="eyebrow">Документи и такси</span><span class="num">'+fmtE(dcs)+'</span></div><div class="tile"><span class="eyebrow">Общо'+(ui.year==='all'?'':' за '+ui.year)+'</span><span class="num">'+fmtE(svc+dcs)+'</span></div></div>';
   S.docs.forEach(function(dc){if(dc.policies&&dc.policies.length)h+='<div class="box"><h3 class="box-h">'+esc(dc.name)+'</h3>'+policiesHTML(dc)+'</div>'});
   if(!sel.length){h+='<div class="empty">Още няма записи. На „Табло“ натиснете „Запиши посещение в сервиза“ или „Поднови“ до документ.</div>'}
@@ -790,7 +841,7 @@ function history(){
   return h+'</section>';
 }
 function settings(){
-  var h=carSettingsHTML()+'<section><h2>Позиции за обслужване</h2><div class="box"><div class="tbl"><table><thead><tr><th>Позиция</th><th>Км</th><th>Месеци</th><th>Група</th><th></th></tr></thead><tbody>';
+  var h='<section><h2>Позиции за обслужване</h2><div class="box"><div class="tbl"><table><thead><tr><th>Позиция</th><th>Км</th><th>Месеци</th><th>Група</th><th></th></tr></thead><tbody>';
   S.groups.forEach(function(g){var its=S.items.filter(function(it){return gid(it)===g.id});if(!its.length)return;
     h+='<tr class="gh"><th colspan="5">'+esc(g.name)+'</th></tr>';
     its.forEach(function(it){if(it.md){h+=mdRow(it);return}h+='<tr><td>'+esc(it.name)+'</td><td><input type="number" min="0" step="1000" class="iv" id="iv-km-'+it.id+'" data-id="'+it.id+'" data-f="km" value="'+(it.km||'')+'" aria-label="Интервал в км за '+esc(it.name)+'"></td><td><input type="number" min="0" step="1" class="iv" id="iv-mo-'+it.id+'" data-id="'+it.id+'" data-f="mo" value="'+(it.mo||'')+'" aria-label="Интервал в месеци за '+esc(it.name)+'"></td><td><select class="iv-g" id="iv-g-'+it.id+'" data-id="'+it.id+'" aria-label="Група">'+gOpts(gid(it))+'</select></td><td class="r"><button class="btn small danger" data-act="delitem" data-id="'+it.id+'">'+(ui.del==='item:'+it.id?'Потвърди':'Премахни')+'</button></td></tr>'})});
@@ -800,12 +851,16 @@ function settings(){
   S.docs.forEach(function(dc){var n=dc.inst||1;
     h+='<tr><td>'+esc(dc.name)+((dc.id==='ins'||dc.insurer!=null)?'<input type="text" class="dv ins-in" id="dv-ins-'+dc.id+'" data-id="'+dc.id+'" data-f="insurer" placeholder="застраховател" value="'+esc(dc.insurer||'')+'" aria-label="Застраховател"><input type="number" class="dv ins-in" id="dv-val-'+dc.id+'" data-id="'+dc.id+'" data-f="carValue" min="0" step="1" placeholder="оценка на колата, €" value="'+(dc.carValue||'')+'" aria-label="Оценка на автомобила">':'')+((dc.renewPlan&&dc.renewPlan.length)?'<div class="muted" style="font-size:.75rem">следващото за '+moText(dc.renewPlan[0])+'</div>':'')+'</td><td><input type="date" class="dv" id="dv-until-'+dc.id+'" data-id="'+dc.id+'" data-f="until" value="'+dc.until+'" aria-label="Валидно до"></td><td><input type="number" min="1" step="1" class="dv" id="dv-mo-'+dc.id+'" data-id="'+dc.id+'" data-f="renewMo" value="'+(dc.renewMo||12)+'" aria-label="Период в месеци"></td><td><select class="dv" id="dv-inst-'+dc.id+'" data-id="'+dc.id+'" data-f="inst" aria-label="Брой вноски">'+[1,2,3,4].map(function(v){return '<option value="'+v+'"'+(v===n?' selected':'')+'>'+(v===1?'еднократно':v+' вноски')+'</option>'}).join('')+'</select></td><td>'+((dc.parts&&dc.parts.length)?'<div style="display:flex;flex-direction:column;gap:4px">'+dc.parts.map(function(p,i){return '<label style="display:flex;gap:6px;align-items:center;font-size:.78rem;color:var(--muted)"><span style="width:44px">'+esc(p.n)+'</span><input type="number" min="0" step="0.01" class="dv" id="dv-part-'+dc.id+'-'+i+'" data-id="'+dc.id+'" data-f="part" data-i="'+i+'" value="'+(p.a||'')+'"></label>'}).join('')+'<span class="num" style="font-size:.8rem;font-weight:700">= '+fmtE(docAnnual(dc))+'</span></div>':'<input type="number" min="0" step="0.01" class="dv" id="dv-annual-'+dc.id+'" data-id="'+dc.id+'" data-f="annual" value="'+(dc.annual||'')+'" aria-label="Годишна сума">')+'</td><td class="r"><button class="btn small danger" data-act="deldoc" data-id="'+dc.id+'">'+(ui.del==='doc:'+dc.id?'Потвърди':'Премахни')+'</button></td></tr>'});
   h+='</tbody></table></div><form class="inline" data-form="adddoc"><label class="f grow">Нов документ<input type="text" id="d-name" placeholder="напр. Данък МПС" required></label><label class="f w-date">Валидно до<input type="date" id="d-until" required></label><label class="f w-sm">Месеци<input type="number" id="d-mo" min="1" step="1" value="12"></label><button class="btn" type="submit">Добави</button></form><p class="foot">При вноски „Валидно до“ е датата, до която е платено. Сумата на вноската се предлага като годишната сума, разделена на броя вноски.</p></div></section>';
-  var rd=S.readings.slice().sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:b.km-a.km});
-
+  return h;
+}
+function versionsSectionHTML(){
+  var h='';
   h+='<section><h2>Последни промени</h2><div class="box"><p class="foot">Пазят се последните 30 промени от всички устройства. Можете да върнете книжката към състоянието отпреди която и да е от тях; самото връщане също може да се отмени оттук.</p>'+versionsHTML()+'</div></section>';
-  if(!ui.push&&!ui.pushLoading){ui.pushLoading=true;setTimeout(refreshPush,0)}
-  h+=notifySettingsHTML();
-  h+=dataSettingsHTML();
+  return h;
+}
+function readingsHTML(){
+  var h='';
+  var rd=S.readings.slice().sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:b.km-a.km});
   h+='<section><h2>Отчитания на километража</h2><div class="box"><div class="tbl"><table><thead><tr><th>Дата</th><th class="r">Км</th><th></th></tr></thead><tbody>'+rd.map(function(r){var k=r.d+'|'+r.km;return '<tr><td class="num">'+fmtD(r.d)+'</td><td class="r num">'+fmtK(r.km)+'</td><td class="r">'+(S.readings.length>1?'<button class="btn small danger" data-act="delread" data-id="'+esc(k)+'">'+(ui.del==='r:'+k?'Потвърди':'Изтрий')+'</button>':'')+'</td></tr>'}).join('')+'</tbody></table></div></div></section>';
   return h;
 }
@@ -813,7 +868,7 @@ function notes(){
   var c=cur(),t=today(),q=(ui.nq||'').trim().toLowerCase();
   var list=S.notes.slice().sort(function(a,b){return (b.pin?1:0)-(a.pin?1:0)||(a.d<b.d?1:a.d>b.d?-1:(a.id<b.id?1:-1))});
   if(q)list=list.filter(function(n){return n.text.toLowerCase().indexOf(q)>=0});
-  var h='<section><div class="sec-head"><h2>Записки</h2><span class="muted" style="font-size:.82rem">'+S.notes.length+(S.notes.length===1?' записка':' записки')+'</span></div>';
+  var h='<section><div class="sec-head"><h2 class="sr">Записки</h2><span class="muted" style="font-size:.82rem">'+S.notes.length+(S.notes.length===1?' записка':' записки')+'</span></div>';
   h+='<form class="box note-new" data-form="note-add"><label class="f">Нова записка<textarea id="n-text" rows="3" placeholder="напр. лек шум отпред вдясно при неравности, да се каже на сервиза" required></textarea></label><div class="note-row"><label class="f w-date">Дата<input type="date" id="n-date" value="'+t+'"></label><label class="f w-km">Км<input type="number" id="n-km" min="0" step="1" inputmode="numeric" value="'+c.km+'"></label><label class="chk" style="align-self:flex-end"><input type="checkbox" id="n-pin"><span>Закачи най-горе</span></label><button class="btn primary" type="submit" style="margin-left:auto">Запиши</button></div></form>';
   if(S.notes.length>3)h+='<label class="f"><span class="sr">Търсене</span><input type="search" id="n-q" placeholder="Търси в записките" value="'+esc(ui.nq||'')+'"></label>';
   if(!S.notes.length)h+='<div class="empty">Още няма записки. Тук можете да пишете наблюдения, въпроси за сервиза, номера на части, контакти.</div>';
@@ -898,9 +953,9 @@ function sheetHTML(){
 function render(){
   if(ui.auth!=='ok'&&!hasLocalData()){root.innerHTML=loginScreen();return}
   if(ui.onboard&&ui.auth==='ok'){root.innerHTML=onboardHTML();return}
-  var rows=allRows(),h=header(rows)+authBanner()+(ui.auth==='ok'?staleHTML():'');
-  h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notes():ui.tab==='settings'?settings():board(rows);
-  root.innerHTML='<div class="wrap">'+h+'</div>'+sheetHTML();
+  var rows=allRows(),h=(ui.tab==='board'?header(rows):pageHead())+authBanner()+(ui.auth==='ok'?staleHTML():'');
+  h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notes():ui.tab==='settings'?settings():ui.tab==='prefs'?prefsPage():board(rows);
+  root.innerHTML=navHTML(rows)+topbarHTML(rows)+'<div class="main"><div class="wrap">'+h+'</div></div>'+sheetHTML();
   if(ui.auth==='ok')writeDueCache();
   document.body.style.overflow=ui.sheet?'hidden':'';
   if(justOpened){justOpened=false;var f=root.querySelector('.sheet input[type=number], .sheet input[type=date]');if(f)f.focus()}
@@ -1147,7 +1202,7 @@ function applyImport(fromOnboard){
 }
 function startFresh(){
   var d=seedCopy();d.car.purchase=today();
-  replaceS(d);S._v=0;ui.onboard=false;ui.tab='settings';pendingMsgs.push('Нова книжка');cacheSave();render();toast('Попълнете данните за автомобила',false,5000);save();
+  replaceS(d);S._v=0;ui.onboard=false;ui.tab='prefs';pendingMsgs.push('Нова книжка');cacheSave();render();toast('Попълнете данните за автомобила',false,5000);save();
 }
 function exportJSON(){
   var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');
@@ -1240,6 +1295,48 @@ function notifySettingsHTML(){
     h+='<details class="imp-det"'+(ui.pushCodeOpen?' open':'')+'><summary>Свързване с GitHub (еднократно за всяко устройство)</summary><ol class="steps"><li>Копирайте кода на това устройство.</li><li>Отворете <b>github.com → вашето репо → Settings → Secrets and variables → Actions</b>.</li><li>Отворете (или създайте) <b>PUSH_SUBSCRIPTIONS</b> и поставете кода <b>на нов ред</b> под кодовете на другите устройства.</li></ol><textarea id="push-code" rows="4" readonly>'+esc(p.sub)+'</textarea><div class="actions"><button class="btn primary" data-act="push-copy">Копирай кода</button></div><p class="foot">Кодът е само адрес за доставяне на известия до това устройство. В него няма данни от книжката.</p></details>';
   }
   return h+'</div></section>';
+}
+
+// ---------- Навигация: странично меню (десктоп) / хамбургер (телефон) ----------
+ICONS.menu='<path d="M4 7h16M4 12h16M4 17h16"/>';
+ICONS.x='<path d="M6 6l12 12M18 6 6 18"/>';
+ICONS.home='<path d="M4 11 12 4.5 20 11v8.5a.5.5 0 0 1-.5.5H15v-5.5H9V20H4.5a.5.5 0 0 1-.5-.5z"/>';
+ICONS.cal='<rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>';
+ICONS.cog='<circle cx="12" cy="12" r="3"/><path d="M19.4 13.6a7.7 7.7 0 0 0 0-3.2l2-1.5-2-3.5-2.3 1a7.6 7.6 0 0 0-2.8-1.6L14 2.5h-4l-.3 2.3a7.6 7.6 0 0 0-2.8 1.6l-2.3-1-2 3.5 2 1.5a7.7 7.7 0 0 0 0 3.2l-2 1.5 2 3.5 2.3-1a7.6 7.6 0 0 0 2.8 1.6l.3 2.3h4l.3-2.3a7.6 7.6 0 0 0 2.8-1.6l2.3 1 2-3.5z"/>';
+var NAV_MAIN=[['board','Табло','home'],['schedule','График','cal'],['notes','Записки','pen'],['history','История','clock']];
+var NAV_CONF=[['settings','Интервали','sliders'],['prefs','Настройки','cog']];
+var TAB_TITLE={board:'Табло',schedule:'График',notes:'Записки',history:'История',settings:'Интервали',prefs:'Настройки'};
+function menuIsOpen(){var b=document.body;return !!(b&&b.classList&&b.classList.contains('menu-open'))}
+function attCount(rows){return rows.filter(function(o){return o.x.st!=='ok'}).length}
+function navHTML(rows){
+  var c=cur(),att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'});
+  function it(t){var on=ui.tab===t[0];return '<button type="button" class="nav-i" data-act="tab" data-v="'+t[0]+'"'+(on?' aria-current="page"':'')+'>'+svg(t[2],20)+'<span>'+t[1]+'</span>'+(t[0]==='board'&&att?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+'</button>'}
+  var h='<div class="nav-scrim" data-act="menu-close"></div><aside class="nav" id="nav" aria-label="Меню">';
+  h+='<div class="nav-brand">'+(S.car.photo?'<img class="nav-thumb" src="'+S.car.photo+'" alt="" style="'+pvStyle(S.car.photoView)+'">':'<img class="nav-thumb icon" src="icons/icon-192.png" alt="">')+'<span class="nav-car"><b>'+esc(S.car.name)+'</b><small>'+fmtK(c.km)+' км · '+fmtD(c.d)+'</small></span><button type="button" class="nav-x" data-act="menu-close" aria-label="Затвори менюто">'+svg('x',20)+'</button></div>';
+  h+='<div class="nav-acts"><button type="button" class="nav-cta" data-act="visit">'+svg('plus',18)+'<span>Запиши посещение</span></button><button type="button" class="nav-sec" data-act="odo">'+svg('gauge',18)+'<span>Обнови километража</span></button></div>';
+  h+='<nav class="nav-list" aria-label="Раздели">'+NAV_MAIN.map(it).join('')+'<span class="nav-lbl">Настройка</span>'+NAV_CONF.map(it).join('')+'</nav>';
+  h+='<div class="nav-foot">'+(auth&&auth.email?'<span>'+esc(auth.email)+'</span>':'')+'</div></aside>';
+  return h;
+}
+function topbarHTML(rows){
+  var att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'});
+  return '<div class="topbar"><button type="button" class="tb-menu" data-act="menu" aria-label="Меню" aria-controls="nav" aria-expanded="'+menuIsOpen()+'">'+svg('menu',22)+(att&&ui.tab!=='board'?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+'</button><span class="tb-title">'+(TAB_TITLE[ui.tab]||'')+'</span><button type="button" class="tb-act" data-act="visit" aria-label="Запиши посещение" title="Запиши посещение">'+svg('plus',20)+'</button></div>';
+}
+function pageHead(){
+  return '<div class="page-head"><h1>'+(TAB_TITLE[ui.tab]||'')+'</h1><div class="save'+(saveCls?' '+saveCls:'')+'" id="save">'+esc(saveText())+'</div></div>';
+}
+function openMenu(){document.body.classList.add('menu-open');var b=document.querySelector('.tb-menu');if(b)b.setAttribute('aria-expanded','true');var f=document.querySelector('.nav .nav-i[aria-current]')||document.querySelector('.nav .nav-i');if(f)try{f.focus({preventScroll:true})}catch(e){}}
+function closeMenu(){if(!menuIsOpen())return;document.body.classList.remove('menu-open');var b=document.querySelector('.tb-menu');if(b)b.setAttribute('aria-expanded','false')}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;var a=b.getAttribute('data-act');
+  if(a==='menu'){e.stopPropagation();if(menuIsOpen())closeMenu();else openMenu();return}
+  if(a==='menu-close'){e.stopPropagation();closeMenu();return}
+  if(b.closest('.nav'))closeMenu();
+},true);
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu()});
+window.addEventListener('resize',function(){if(window.innerWidth>=1000)closeMenu()});
+function prefsPage(){
+  if(!ui.push&&!ui.pushLoading){ui.pushLoading=true;setTimeout(refreshPush,0)}
+  return carSettingsHTML()+notifySettingsHTML()+readingsHTML()+versionsSectionHTML()+dataSettingsHTML();
 }
 
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
@@ -1438,7 +1535,7 @@ root.addEventListener('click',function(e){
   if(a==='note-pin'){var np=S.notes.find(function(n){return n.id===id});if(np)act(np.pin?'Записката е откачена':'Записката е закачена',function(){if(np.pin)delete np.pin;else np.pin=true});return}
   if(a==='note-del'){if(ui.del!=='n:'+id){ui.del='n:'+id;render();return}act('Записката е изтрита',function(){S.notes=S.notes.filter(function(n){return n.id!==id})});return}
   if(a==='copy-vin'){var vt=S.car.vin||'';var done=function(){toast('VIN е копиран',false,2500)};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(vt).then(done,function(){selVin()})}else selVin();return}
-  if(a==='tab'){ui.tab=v;ui.del=null;ui.sheet=null;if(v!=='schedule')lsSet('kq-tab',v);render();try{window.scrollTo(0,0)}catch(x){}return}
+  if(a==='tab'){ui.tab=v;ui.del=null;ui.sheet=null;lsSet('kq-tab',v);render();try{window.scrollTo(0,0)}catch(x){}return}
   if(a==='view'){ui.view=v;lsSet('kq-view',v);render();return}
   if(a==='year'){ui.year=v;render();return}
   if(a==='close'){ui.sheet=null;render();return}
