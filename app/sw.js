@@ -3,7 +3,7 @@
 // 2) Получава ежедневния сигнал от GitHub Actions и показва известие.
 //    Сигналът не носи данни: какво да се покаже се изчислява тук,
 //    от копието на сроковете, което приложението пази на устройството.
-const CACHE = 'car-diary-v11';
+const CACHE = 'car-diary-v12';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon-32.png', 'icons/badge-72.png'];
 
 self.addEventListener('install', e => {
@@ -43,10 +43,29 @@ async function writeJSON(name, obj) {
   await c.put(name, new Response(JSON.stringify(obj), { headers: { 'Content-Type': 'application/json' } }));
 }
 
+// Километраж от MyŠkoda: същият криптиран файл, който чете приложението (без заявка към Škoda).
+function b64(s) { const b = atob(s), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+async function freshKm(snap) {
+  try {
+    const cfg = await readJSON('odo-cfg.json');
+    if (!cfg || !cfg.url || !cfg.pass) return snap;
+    const r = await fetch(cfg.url + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return snap;
+    const f = await r.json(), enc = new TextEncoder();
+    const base = await crypto.subtle.importKey('raw', enc.encode(cfg.pass), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(f.salt), iterations: 250000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const p = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(f.iv) }, key, b64(f.ct))));
+    const d = ymd(new Date(p.at));
+    if (typeof p.km === 'number' && p.km > snap.km && d >= snap.kmDate) return Object.assign({}, snap, { km: p.km, kmDate: d });
+  } catch (_) {}
+  return snap;
+}
+
 // Връща списък с позиции, за които днес има ново „стъпало“ (30, 7, 3... дни; 1500/500 км; просрочено).
 async function dueToday() {
-  const snap = await readJSON('due.json');
+  let snap = await readJSON('due.json');
   if (!snap) return { snap: null, list: [] };
+  snap = await freshKm(snap);
   const today = ymd(new Date());
   const sent = (await readJSON('sent.json')) || {};
   const days = (snap.days || [30, 7, 3, 1, 0]).slice().sort((a, b) => a - b);

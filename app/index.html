@@ -1035,7 +1035,7 @@ function sheetHTML(){
 function render(){
   if(ui.auth!=='ok'&&!hasLocalData()){root.innerHTML=loginScreen();return}
   if(ui.onboard&&ui.auth==='ok'){root.innerHTML=onboardHTML();return}
-  var rows=allRows(),h=(ui.tab==='board'?header(rows):pageHead())+authBanner()+(ui.auth==='ok'?staleHTML():'');
+  var rows=allRows(),h=(ui.tab==='board'?header(rows):pageHead())+authBanner()+odoBanner()+(ui.auth==='ok'?staleHTML():'');
   h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notesPage():ui.tab==='settings'?settings():ui.tab==='prefs'?prefsPage():ui.tab==='service'?servicePage():(boardApptCard()+board(rows));
   root.innerHTML=navHTML(rows)+topbarHTML(rows)+'<div class="main"><div class="wrap">'+h+'</div></div>'+sheetHTML();
   if(ui.auth==='ok')writeDueCache();
@@ -1424,7 +1424,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu()}
 window.addEventListener('resize',function(){if(window.innerWidth>=1000)closeMenu()});
 function prefsPage(){
   if(!ui.push&&!ui.pushLoading){ui.pushLoading=true;setTimeout(refreshPush,0)}
-  return carSettingsHTML()+notifySettingsHTML()+readingsHTML()+versionsSectionHTML()+dataSettingsHTML();
+  return carSettingsHTML()+notifySettingsHTML()+odoSettingsHTML()+readingsHTML()+versionsSectionHTML()+dataSettingsHTML();
 }
 
 // ---------- Записки като нишки: записка + коментари под нея ----------
@@ -1677,11 +1677,107 @@ function apptAction(a,id){
 // push: запазените часове влизат в копието на сроковете за service worker-а
 function apptDueItems(){var t=today();return apptsOpen().filter(function(a){return a.d>=t}).map(function(a){return {k:'appt-'+a.id,n:'Сервиз'+(a.place?' · '+a.place:''),d:a.d,km:null,t:a.t||'',appt:1,days:[3,1,0]}})}
 
+// ---------- Километраж от MyŠkoda (чрез криптиран файл, който GitHub Actions обновява веднъж на нощ) ----------
+// Приложението никога не говори със Škoda – чете само odo.json от клона odo-data и го разшифрова с паролата.
+function odoUrl(){
+  var o=lsGet('cd-odo-url');if(o)return o;
+  var hm=String(location.hostname||'').match(/^([^.]+)\.github\.io$/),seg=String(location.pathname||'').split('/').filter(Boolean)[0];
+  if(!hm)return null;
+  return 'https://raw.githubusercontent.com/'+hm[1]+'/'+(seg||hm[1]+'.github.io')+'/odo-data/odo.json';
+}
+function odoPass(){return lsGet('cd-odo-pass')||''}
+function odoLast(){try{return JSON.parse(lsGet('cd-odo-last')||'null')}catch(e){return null}}
+function b64ToBytes(s){var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function odoDecrypt(file,pass){
+  var enc=new TextEncoder();
+  return crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveKey']).then(function(base){
+    return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(file.salt),iterations:250000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+  }).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(file.iv)},key,b64ToBytes(file.ct))})
+    .then(function(buf){return JSON.parse(new TextDecoder().decode(buf))},function(){var e=new Error('Паролата не съвпада с ODO_SECRET в GitHub');e.code='pass';throw e});
+}
+function odoLocalDate(iso){var d=new Date(iso);if(isNaN(d))return today();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function odoSwConfig(){
+  if(!('caches' in window))return;
+  try{var pw=odoPass(),u=odoUrl();caches.open('cd-notify').then(function(c){return pw&&u?c.put('odo-cfg.json',new Response(JSON.stringify({url:u,pass:pw}),{headers:{'Content-Type':'application/json'}})):c.delete('odo-cfg.json')}).catch(function(){})}catch(e){}
+}
+var odoBusy=false;
+function odoCheck(force){
+  var pw=odoPass(),u=odoUrl();if(!pw||!u||odoBusy)return Promise.resolve(null);
+  if(!force&&Date.now()-(+lsGet('cd-odo-check')||0)<6*36e5)return Promise.resolve(null);
+  if(ui.auth!=='ok'||ui.onboard)return Promise.resolve(null);
+  odoBusy=true;ui.odoErr='';if(force)render();
+  return fetch(u+'?t='+Date.now(),{cache:'no-store'}).then(function(r){
+    if(r.status===404){var e=new Error('Още няма данни – пуснете веднъж „Километраж от MyŠkoda“ в GitHub → Actions → Run workflow.');e.code=404;throw e}
+    if(!r.ok)throw new Error('GitHub върна '+r.status);
+    return r.json();
+  }).then(function(file){return odoDecrypt(file,pw)}).then(function(p){
+    odoBusy=false;lsSet('cd-odo-check',String(Date.now()));lsSet('cd-odo-last',JSON.stringify(p));
+    var added=odoApply(p,force);if(!added)render();return p;
+  }).catch(function(e){odoBusy=false;lsSet('cd-odo-check',String(Date.now()));ui.odoErr=errText(e);render();if(force)toast(ui.odoErr,false,7000);return null});
+}
+function odoApply(p,force){
+  if(!p||typeof p.km!=='number')return false;
+  var c=cur(),d=odoLocalDate(p.at);
+  if(p.km<=c.km){if(force)toast('Километражът е актуален: '+fmtK(c.km)+' км',false,4000);return false}
+  if(d<c.d)d=c.d;
+  var dd=Math.max(1,days(c.d,d));
+  if((p.km-c.km)/dd>3000){ui.odoErr='MyŠkoda отчете '+fmtK(p.km)+' км – твърде голям скок, не е добавено автоматично.';return false}
+  if(S.readings.some(function(r){return r.d===d&&r.km===p.km}))return false;
+  act('Километраж от MyŠkoda: '+fmtK(p.km)+' км',function(){S.readings.push({d:d,km:p.km,src:'skoda'})});
+  return true;
+}
+function odoKeyDays(){var l=odoLast();if(!l||!l.keyExpires)return null;var x=new Date(l.keyExpires);if(isNaN(x))return null;return Math.floor((x-Date.now())/864e5)}
+function odoBanner(){
+  if(!odoPass())return '';
+  var l=odoLast(),kd=odoKeyDays(),msg='';
+  if(kd!=null&&kd<=14)msg=kd<0?'Ключът за MyŠkoda е изтекъл – километражът вече не се обновява сам.':'Ключът за MyŠkoda изтича след '+kd+(kd===1?' ден':' дни')+'.';
+  else if(l&&l.fetched&&Date.now()-Date.parse(l.fetched)>3*864e5)msg='Километражът от MyŠkoda не е обновяван от '+fmtD(odoLocalDate(l.fetched))+'.';
+  if(!msg)return '';
+  return '<div class="stale">'+svg('gauge',18)+'<span>'+esc(msg)+' </span><button class="link" data-act="tab" data-v="prefs">Настройки</button></div>';
+}
+function odoSettingsHTML(){
+  var pw=odoPass(),l=odoLast(),kd=odoKeyDays();
+  var h='<section><h2>Километраж от MyŠkoda</h2><div class="box">';
+  if(!odoUrl())return h+'<p class="foot">Работи само в публикуваното приложение (github.io).</p></div></section>';
+  if(!pw||ui.odoEdit){
+    h+='<p class="foot">Всяка нощ GitHub прави <b>една</b> заявка към официалното MyŠkoda API, криптира километража с паролата <b>ODO_SECRET</b> и го публикува. Въведете същата парола тук – веднъж на всяко устройство.</p>';
+    h+='<form class="inline" data-form="odo-pass"><label class="f grow">Парола (ODO_SECRET)<input type="password" id="odo-pass" autocomplete="off" required minlength="8"></label><button class="btn primary" type="submit">Запази и провери</button>'+(pw?'<button class="btn" type="button" data-act="odo-edit-cancel">Отказ</button>':'')+'</form>';
+    if(ui.odoErr)h+='<p class="err">'+esc(ui.odoErr)+'</p>';
+    return h+'</div></section>';
+  }
+  h+='<div class="ntf-st'+(l&&!ui.odoErr?' on':'')+'"><span class="dot"></span><b>'+(l?fmtK(l.km)+' км':'Още няма отчитане')+'</b>'+(l?'<span class="muted" style="font-size:.84rem">· от колата '+fmtDT(l.at)+'</span>':'')+'</div>';
+  var lines=[];
+  if(l&&l.fetched)lines.push('Последна заявка към Škoda: '+fmtDT(l.fetched)+' (веднъж на нощ, около 03:00)');
+  if(kd!=null)lines.push((kd<=14?'<b style="color:var(--warn)">':'')+'Ключът на Škoda е валиден до '+fmtD(odoLocalDate(l.keyExpires))+(kd<=14?' – подновете го в MyŠkoda и обновете SKODA_API_KEY в GitHub</b>':''));
+  lines.push('Ново отчитане се добавя само ако километражът е по-голям от последния.');
+  h+='<p class="foot">'+lines.join('<br>')+'</p>';
+  if(ui.odoErr)h+='<p class="err">'+esc(ui.odoErr)+'</p>';
+  h+='<div class="actions"><button class="btn" data-act="odo-check"'+(odoBusy?' disabled':'')+'>'+(odoBusy?'Проверка…':'Провери сега')+'</button><button class="btn" data-act="odo-edit">Смени паролата</button><button class="btn danger" data-act="odo-off">'+(ui.del==='odo-off'?'Потвърди изключването':'Изключи на това устройство')+'</button></div>';
+  h+='<p class="foot">„Провери сега“ чете последния файл от GitHub – не прави заявка към Škoda.</p>';
+  return h+'</div></section>';
+}
+function odoAction(a){
+  if(a==='odo-check'){odoCheck(true);return true}
+  if(a==='odo-edit'){ui.odoEdit=true;ui.odoErr='';render();return true}
+  if(a==='odo-edit-cancel'){ui.odoEdit=false;ui.odoErr='';render();return true}
+  if(a==='odo-off'){if(ui.del!=='odo-off'){ui.del='odo-off';render();return true}ui.del=null;['cd-odo-pass','cd-odo-last','cd-odo-check'].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});odoSwConfig();ui.odoErr='';render();toast('Автоматичният километраж е изключен на това устройство',false,4000);return true}
+  return false;
+}
+function odoSubmit(){
+  var el=document.getElementById('odo-pass'),pw=el?el.value:'';if(!pw)return;
+  var old=odoPass();lsSet('cd-odo-pass',pw);lsSet('cd-odo-check','0');ui.odoEdit=false;
+  odoCheck(true).then(function(p){
+    if(p){odoSwConfig();toast('Свързано с MyŠkoda: '+fmtK(p.km)+' км',false,5000)}
+    else if(ui.odoErr&&/Паролата/.test(ui.odoErr)){if(old)lsSet('cd-odo-pass',old);else try{localStorage.removeItem('cd-odo-pass')}catch(e){}ui.odoEdit=!old;render()}
+    else odoSwConfig();
+  });
+}
+
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
 var pullTimer=null;
 var syncTimer=null,inFlight=false,dirty=lsGet('kq-dirty')==='1',pendingMsgs=[],baseSnap=lsGet('kq-base');
 function setBase(str){baseSnap=str;lsSet('kq-base',str)}
-function markSynced(){lsSet('kq-synced',new Date().toISOString());if(ui.stale){ui.stale=null;if(!ui.sheet)render()}}
+function markSynced(){setTimeout(function(){odoCheck(false)},300);lsSet('kq-synced',new Date().toISOString());if(ui.stale){ui.stale=null;if(!ui.sheet)render()}}
 function setStale(reason){var was=!!ui.stale;ui.stale={reason:reason};if(!was&&!ui.sheet)render()}
 function jeq(a,b){return JSON.stringify(a)===JSON.stringify(b)}
 function keyOf(x){if(!x||typeof x!=='object'||Array.isArray(x))return null;if(x.id!=null)return 'i:'+x.id;if(x.from)return 'f:'+x.from;if(x.d&&x.km!=null&&!x.item&&!x.doc)return 'r:'+x.d+'|'+x.km;return null}
@@ -1848,6 +1944,7 @@ root.addEventListener('click',function(e){
   if(a==='push-test'){testNotification();return}
   if(a==='push-copy'){var pc=ui.push&&ui.push.sub||'';ui.pushCodeOpen=true;var sel=function(){var ta=document.getElementById('push-code');if(ta){ta.focus();ta.select()}toast('Кодът е маркиран – копирайте с Ctrl+C / „Копиране“',false,5000)};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(pc).then(function(){toast('Кодът е копиран',false,3000)},sel);else sel();return}
   if(apptAction(a,id))return;
+  if(odoAction(a))return;
   if(a==='reply'){ui.replyTo=id;ui.editNote=null;ui.del=null;render();focusReply();return}
   if(a==='reply-cancel'){ui.replyTo=null;render();return}
   if(a==='reply-del'){var rp=String(id).split('/');if(ui.del!=='nr:'+id){ui.del='nr:'+id;render();return}act('Коментарът е изтрит',function(){var rn=S.notes.find(function(n){return n.id===rp[0]});if(rn&&rn.replies){rn.replies=rn.replies.filter(function(r){return r.id!==rp[1]});if(!rn.replies.length)delete rn.replies}});return}
@@ -1938,6 +2035,7 @@ function handleForm(f){
     var nt=val('n-text').trim();if(!nt)return;var nd=val('n-date')||today(),nk=parseInt(val('n-km'),10),npin=document.getElementById('n-pin').checked;
     act('Записката е добавена',function(){var n={id:uid(),d:nd,text:nt};if(!isNaN(nk))n.km=nk;if(npin)n.pin=true;S.notes.push(n)});return}
   if(k==='appt'){submitAppt(f);return}
+  if(k==='odo-pass'){odoSubmit();return}
   if(k==='reply-add'){
     var rid=f.getAttribute('data-id'),rt=val('r-text').trim();if(!rt)return;var rkm=cur().km;
     ui.replyTo=null;act('Коментарът е добавен',function(){var rn=S.notes.find(function(n){return n.id===rid});if(!rn)return;(rn.replies=rn.replies||[]).push({id:uid(),d:today(),km:rkm,text:rt})});return}
@@ -2018,6 +2116,7 @@ ui.auth=tokenValid()?'ok':'need';render();
 if(ui.auth==='ok'){setSave(dirty?'Изпращане на промени от това устройство…':'Зареждане…');pull()}else setSave('Влезте с Google, за да синхронизирате','warn');
 (function waitGis(n){if(gisReady())initGis();else if(n<60)setTimeout(function(){waitGis(n+1)},250)})(0);
 if('serviceWorker' in navigator){try{navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}}
+odoSwConfig();
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&tokenValid()&&!ui.onboard){if(dirty)push();else pull()}});
 window.addEventListener('online',function(){if(tokenValid()&&!ui.onboard){if(dirty)push();else pull()}});
 

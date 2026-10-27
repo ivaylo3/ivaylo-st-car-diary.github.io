@@ -1,0 +1,42 @@
+name: Километраж от MyŠkoda
+
+on:
+  schedule:
+    # Веднъж на ден, 01:00 UTC = 03:00 българско време (04:00 през лятото).
+    # Една заявка към Škoda на пускане, без повторни опити.
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: odometer
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - name: Една заявка към MyŠkoda Public API
+        run: node .github/scripts/odometer.mjs "$RUNNER_TEMP/odo.json"
+        env:
+          SKODA_API_KEY: ${{ secrets.SKODA_API_KEY }}
+          SKODA_VIN: ${{ secrets.SKODA_VIN }}
+          ODO_SECRET: ${{ secrets.ODO_SECRET }}
+      - name: Публикуване на криптирания файл (клон odo-data, без история)
+        run: |
+          cd "$RUNNER_TEMP"
+          rm -rf pub && mkdir pub && cd pub
+          git init -q -b odo-data
+          cp ../odo.json odo.json
+          git add odo.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Километраж (криптиран)"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" odo-data
+          echo "Публикувано в клона odo-data."
