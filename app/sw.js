@@ -3,7 +3,7 @@
 // 2) Получава ежедневния сигнал от GitHub Actions и показва известие.
 //    Сигналът не носи данни: какво да се покаже се изчислява тук,
 //    от копието на сроковете, което приложението пази на устройството.
-const CACHE = 'car-diary-v12';
+const CACHE = 'car-diary-v13';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon-32.png', 'icons/badge-72.png'];
 
 self.addEventListener('install', e => {

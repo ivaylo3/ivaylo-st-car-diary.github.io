@@ -320,6 +320,12 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
   body.menu-open{overflow:hidden}
 }
 @media (prefers-reduced-motion:reduce){.nav,.nav-scrim{transition:none!important}}
+.odo-pull{display:flex;align-items:center;gap:12px;background:var(--sunk);border-radius:var(--r-sm);padding:10px 12px}
+.op-ico{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);flex:none}
+.op-t{flex:1;min-width:0;display:flex;flex-direction:column}.op-t b{font-size:.9rem}.op-t small{font-size:.74rem;color:var(--muted)}
+.odo-warn{color:var(--warn)}
+.odo-fix{align-items:center}.odo-fix .btn{margin-left:auto}
+@media (max-width:520px){.odo-pull{flex-wrap:wrap}.odo-pull .btn{width:100%}}
 /* ---- service appointments ---- */
 .nav-pill{margin-left:auto;font-size:.68rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:999px;white-space:nowrap}
 .nav-i[aria-current="page"] .nav-pill{background:var(--surface)}
@@ -1028,7 +1034,7 @@ function sheetHTML(){
     body='<form class="sheet-form" data-form="pay" data-id="'+dc.id+'"'+(newPol&&isIns?' data-new="1"':'')+'>'+pp+'<div class="fields"><label class="f">Платено на<input type="date" id="p-date" value="'+t+'" required></label><label class="f">'+(isIns?'Платено до':'Ново валидно до')+'<input type="date" id="p-until" value="'+untilDef+'" required></label><label class="f">'+(newPol&&isIns?'Сума на тази вноска (€)':'Сума (€)')+'<input type="number" id="p-cost" min="0" step="0.01" inputmode="decimal" value="'+amt+'"></label></div><label class="f">Бележка<input type="text" id="p-note" placeholder="напр. номер на полица"></label>'+actions+'</form>';
   }else if(s.type==='odo'){
     title='Километраж';sub='Последно: '+fmtK(c.km)+' км към '+fmtD(c.d);
-    body='<form class="sheet-form" data-form="odo"><div class="fields"><label class="f">Дата<input type="date" id="o-date" value="'+t+'" required></label><label class="f">Километраж<input type="number" id="o-km" min="0" step="1" inputmode="numeric" value="'+c.km+'" required></label></div><p class="err" id="o-err" hidden></p>'+actions+'</form>';
+    body='<form class="sheet-form" data-form="odo"><div class="fields"><label class="f">Дата<input type="date" id="o-date" value="'+(s.odo&&s.odo.d?s.odo.d:t)+'" required></label><label class="f">Километраж<input type="number" id="o-km" min="0" step="1" inputmode="numeric" value="'+(s.odo&&s.odo.filled?s.odo.filled:c.km)+'" required></label></div>'+odoSheetBlock()+'<p class="err" id="o-err" hidden></p>'+actions+'</form>';
   }
   return '<div class="backdrop" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="sheet-head"><div><h2 id="sheet-title">'+esc(title)+'</h2><p>'+esc(sub)+'</p></div><button type="button" class="x" data-act="close" aria-label="Затвори">×</button></div>'+body+'</div>';
 }
@@ -1701,6 +1707,14 @@ function odoSwConfig(){
   try{var pw=odoPass(),u=odoUrl();caches.open('cd-notify').then(function(c){return pw&&u?c.put('odo-cfg.json',new Response(JSON.stringify({url:u,pass:pw}),{headers:{'Content-Type':'application/json'}})):c.delete('odo-cfg.json')}).catch(function(){})}catch(e){}
 }
 var odoBusy=false;
+function odoFetch(){
+  var pw=odoPass(),u=odoUrl();if(!pw||!u)return Promise.reject(new Error('MyŠkoda не е свързана – Настройки → Километраж от MyŠkoda'));
+  return fetch(u+'?t='+Date.now(),{cache:'no-store'}).then(function(r){
+    if(r.status===404){var e=new Error('Още няма данни – пуснете веднъж „Километраж от MyŠkoda“ в GitHub → Actions → Run workflow.');e.code=404;throw e}
+    if(!r.ok)throw new Error('GitHub върна '+r.status);
+    return r.json();
+  }).then(function(file){return odoDecrypt(file,pw)}).then(function(p){lsSet('cd-odo-check',String(Date.now()));lsSet('cd-odo-last',JSON.stringify(p));return p});
+}
 function odoCheck(force){
   var pw=odoPass(),u=odoUrl();if(!pw||!u||odoBusy)return Promise.resolve(null);
   if(!force&&Date.now()-(+lsGet('cd-odo-check')||0)<6*36e5)return Promise.resolve(null);
@@ -1718,6 +1732,7 @@ function odoCheck(force){
 function odoApply(p,force){
   if(!p||typeof p.km!=='number')return false;
   var c=cur(),d=odoLocalDate(p.at);
+  if(p.km<c.km&&odoHigher(p.km).length){if(force)toast('MyŠkoda показва '+fmtK(p.km)+' км – по-малко от въведените '+fmtK(c.km)+' км. Вижте предложението за корекция.',false,7000);return false}
   if(p.km<=c.km){if(force)toast('Километражът е актуален: '+fmtK(c.km)+' км',false,4000);return false}
   if(d<c.d)d=c.d;
   var dd=Math.max(1,days(c.d,d));
@@ -1729,6 +1744,7 @@ function odoApply(p,force){
 function odoKeyDays(){var l=odoLast();if(!l||!l.keyExpires)return null;var x=new Date(l.keyExpires);if(isNaN(x))return null;return Math.floor((x-Date.now())/864e5)}
 function odoBanner(){
   if(!odoPass())return '';
+  if(ui.tab!=='prefs'){var mmh=odoMismatchHTML();if(mmh)return mmh}
   var l=odoLast(),kd=odoKeyDays(),msg='';
   if(kd!=null&&kd<=14)msg=kd<0?'Ключът за MyŠkoda е изтекъл – километражът вече не се обновява сам.':'Ключът за MyŠkoda изтича след '+kd+(kd===1?' ден':' дни')+'.';
   else if(l&&l.fetched&&Date.now()-Date.parse(l.fetched)>3*864e5)msg='Километражът от MyŠkoda не е обновяван от '+fmtD(odoLocalDate(l.fetched))+'.';
@@ -1752,12 +1768,16 @@ function odoSettingsHTML(){
   lines.push('Ново отчитане се добавя само ако километражът е по-голям от последния.');
   h+='<p class="foot">'+lines.join('<br>')+'</p>';
   if(ui.odoErr)h+='<p class="err">'+esc(ui.odoErr)+'</p>';
+  h+=odoMismatchHTML();
   h+='<div class="actions"><button class="btn" data-act="odo-check"'+(odoBusy?' disabled':'')+'>'+(odoBusy?'Проверка…':'Провери сега')+'</button><button class="btn" data-act="odo-edit">Смени паролата</button><button class="btn danger" data-act="odo-off">'+(ui.del==='odo-off'?'Потвърди изключването':'Изключи на това устройство')+'</button></div>';
   h+='<p class="foot">„Провери сега“ чете последния файл от GitHub – не прави заявка към Škoda.</p>';
   return h+'</div></section>';
 }
 function odoAction(a){
   if(a==='odo-check'){odoCheck(true);return true}
+  if(a==='odo-pull'){odoPull();return true}
+  if(a==='odo-goto'){ui.sheet=null;ui.tab='prefs';lsSet('kq-tab','prefs');render();return true}
+  if(a==='odo-accept'){var mm=odoMismatch();if(mm)odoAcceptKm(mm.km,mm.d);return true}
   if(a==='odo-edit'){ui.odoEdit=true;ui.odoErr='';render();return true}
   if(a==='odo-edit-cancel'){ui.odoEdit=false;ui.odoErr='';render();return true}
   if(a==='odo-off'){if(ui.del!=='odo-off'){ui.del='odo-off';render();return true}ui.del=null;['cd-odo-pass','cd-odo-last','cd-odo-check'].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});odoSwConfig();ui.odoErr='';render();toast('Автоматичният километраж е изключен на това устройство',false,4000);return true}
@@ -1771,6 +1791,45 @@ function odoSubmit(){
     else if(ui.odoErr&&/Паролата/.test(ui.odoErr)){if(old)lsSet('cd-odo-pass',old);else try{localStorage.removeItem('cd-odo-pass')}catch(e){}ui.odoEdit=!old;render()}
     else odoSwConfig();
   });
+}
+
+// ---------- корекция: колата показва по-малко от ръчно въведеното ----------
+// „По-високи“ са само ръчните отчитания и предишните от MyŠkoda – посещенията в сервиз не се пипат.
+function odoHigher(km){return S.readings.filter(function(r){return r.km>km&&r.src!=='visit'})}
+function odoAcceptKm(km,d){
+  var hi=odoHigher(km),rm=hi.length;
+  act('Километраж по MyŠkoda: '+fmtK(km)+' км'+(rm?' (премахнати '+rm+(rm===1?' по-високо отчитане':' по-високи отчитания')+')':''),function(){
+    S.readings=S.readings.filter(function(r){return !(r.km>km&&r.src!=='visit')});
+    if(!S.readings.some(function(r){return r.d===d&&r.km===km}))S.readings.push({d:d,km:km,src:'skoda'});
+  });
+  if(cur().km>km)toast('Има посещение в сервиза с по-голям километраж ('+fmtK(cur().km)+' км) – проверете го в „Сервиз“.',false,8000);
+}
+function odoMismatch(){
+  if(!odoPass())return null;var l=odoLast();if(!l||typeof l.km!=='number')return null;
+  var c=cur();if(l.km>=c.km||!odoHigher(l.km).length)return null;
+  return {km:l.km,d:odoLocalDate(l.at),cur:c.km};
+}
+function odoMismatchHTML(){
+  var m=odoMismatch();if(!m)return '';
+  return '<div class="stale odo-fix">'+svg('gauge',18)+'<span>MyŠkoda отчита <b>'+fmtK(m.km)+' км</b>, а в книжката има '+fmtK(m.cur)+' км, въведени ръчно. </span><button class="btn small primary" data-act="odo-accept">Приеми от колата</button></div>';
+}
+// блок в прозореца „Километраж“
+function odoSheetBlock(){
+  if(!odoUrl())return '';
+  if(!odoPass())return '<p class="foot odo-hint">'+svg('gauge',14)+' Може да взимате километража директно от колата – свържете MyŠkoda в <button type="button" class="link" data-act="odo-goto">Настройки</button>.</p>';
+  var l=odoLast(),s=ui.sheet&&ui.sheet.odo;
+  var h='<div class="odo-pull"><span class="op-ico">'+svg('gauge',18)+'</span><span class="op-t"><b>'+(s&&s.err?esc(s.err):l?'MyŠkoda: '+fmtK(l.km)+' км':'MyŠkoda')+'</b><small>'+(s&&s.busy?'Взимане…':l?'от колата '+fmtDT(l.at)+' · заявка към Škoda '+fmtDT(l.fetched):'последното отчитане от колата')+'</small></span><button type="button" class="btn" data-act="odo-pull"'+(s&&s.busy?' disabled':'')+'>Вземи от MyŠkoda</button></div>';
+  if(s&&s.filled&&s.filled<cur().km&&odoHigher(s.filled).length)h+='<p class="foot odo-warn">По-малко е от въведените '+fmtK(cur().km)+' км. При запис ще се премахнат ръчните отчитания над '+fmtK(s.filled)+' км (посещенията в сервиз остават).</p>';
+  return h;
+}
+function odoPull(){
+  if(!ui.sheet)return;ui.sheet.odo={busy:true};render();
+  odoFetch().then(function(p){
+    if(!ui.sheet)return;var d=odoLocalDate(p.at);if(d>today())d=today();
+    ui.sheet.odo={filled:p.km,d:d};render();
+    var k=document.getElementById('o-km'),dt=document.getElementById('o-date'),f=k&&k.form;
+    if(k)k.value=p.km;if(dt)dt.value=d;if(f)f.setAttribute('data-skoda',p.km+'|'+d);
+  },function(e){if(ui.sheet){ui.sheet.odo={err:errText(e)};render()}});
 }
 
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
@@ -2101,7 +2160,7 @@ function handleForm(f){
       var en={id:uid(),tyre:set.id,name:'Нови гуми: '+tt.toLowerCase()+(tb?' · '+tb:''),d:td};if(set.cost)en.cost=set.cost;S.log.push(en);
     });return}
   if(k==='photo-view'){var nv=ui.sheet.v;act('Изгледът на снимката е запазен',function(){if(nv.z===1&&nv.x===50&&nv.y===50)delete S.car.photoView;else S.car.photoView={z:nv.z,x:nv.x,y:nv.y}});return}
-  if(k==='odo'){var od=val('o-date'),ok=parseInt(val('o-km'),10);if(!od||isNaN(ok))return;if(!kmGate(f,'o-err',od,ok))return;act('Километражът е обновен: '+fmtK(ok)+' км',function(){S.readings.push({d:od,km:ok})});return}
+  if(k==='odo'){var od=val('o-date'),ok=parseInt(val('o-km'),10);if(!od||isNaN(ok))return;if(f.getAttribute('data-skoda')===ok+'|'+od||(ui.sheet&&ui.sheet.odo&&ui.sheet.odo.filled===ok&&ui.sheet.odo.d===od)){odoAcceptKm(ok,od);return}if(!kmGate(f,'o-err',od,ok))return;act('Километражът е обновен: '+fmtK(ok)+' км',function(){S.readings.push({d:od,km:ok})});return}
   if(k==='add'){
     var nm=val('a-name').trim(),akm=parseInt(val('a-km'),10),amo=parseInt(val('a-mo'),10);if(!nm)return;
     act('Добавено: '+nm,function(){var ni2={id:'c'+uid(),name:nm,g:val('a-g')};if(akm>0)ni2.km=akm;if(amo>0)ni2.mo=amo;if(!ni2.km&&!ni2.mo)ni2.mo=12;S.items.push(ni2)});return}
