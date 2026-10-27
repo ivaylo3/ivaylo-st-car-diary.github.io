@@ -13,7 +13,8 @@ const { SKODA_API_KEY, SKODA_VIN, ODO_SECRET } = process.env;
 const OUT = process.argv[2] || 'odo.json';
 if (!SKODA_API_KEY || !SKODA_VIN || !ODO_SECRET) { console.log('Липсва SKODA_API_KEY, SKODA_VIN или ODO_SECRET в GitHub Secrets.'); process.exit(1); }
 
-const url = 'https://public.api.connect.skoda-auto.cz/api/v1/vehicles/' + encodeURIComponent(SKODA_VIN.trim());
+// include=odometer: искаме само километража (по-малък отговор, ясна грешка ако го няма)
+const url = 'https://public.api.connect.skoda-auto.cz/api/v1/vehicles/' + encodeURIComponent(SKODA_VIN.trim()) + '?include=odometer';
 let res;
 try {
   res = await fetch(url, { headers: { 'X-API-Key': SKODA_API_KEY.trim(), Accept: 'application/json' } });
@@ -38,6 +39,27 @@ if (!res.ok) {
 }
 
 const data = await res.json();
+
+// Официалната схема: vehicle.odometer.mileageInKm (+ carCapturedTimestamp).
+// Ако частта липсва, Škoda връща код в errors: ODOMETER_UNAVAILABLE / _DISABLED / _UNSUPPORTED.
+const errs = Array.isArray(data.errors) ? data.errors.map(e => String(e && e.type || '')).filter(Boolean) : [];
+const odo = data.vehicle && data.vehicle.odometer;
+if (!odo || typeof odo.mileageInKm !== 'number') {
+  const why = {
+    ODOMETER_UNAVAILABLE: 'Колата не е изпратила километража (напр. отдавна не е карана / няма връзка). Опит отново при следващото пускане.',
+    ODOMETER_DISABLED: 'Колата поддържа километраж, но услугата е изключена – проверете онлайн услугите / правата за данни в MyŠkoda.',
+    ODOMETER_UNSUPPORTED: 'Škoda не предоставя километраж за тази кола през това API.'
+  };
+  const code = errs.find(e => e.startsWith('ODOMETER_'));
+  if (code) { console.log('Škoda върна', code + ':', why[code] || ''); process.exit(1); }
+}
+if (odo && typeof odo.mileageInKm === 'number') {
+  const payloadFast = { km: Math.round(odo.mileageInKm), at: odo.carCapturedTimestamp || null };
+  console.log('Километражът е взет от полето: vehicle.odometer.mileageInKm' + (errs.length ? ' (други кодове: ' + errs.join(', ') + ')' : ''));
+  await publish(payloadFast.km, payloadFast.at);
+  process.exit(0);
+}
+if (errs.length) console.log('Кодове от Škoda:', errs.join(', '));
 
 // Търсим полето за километража, без да знаем точната структура.
 const found = [];
@@ -72,6 +94,9 @@ console.log('Километражът е взет от полето:', best.p);
 let capturedAt = null;
 (function walk(o) { if (!o || typeof o !== 'object' || capturedAt) return; for (const [k, v] of Object.entries(o)) { if (!capturedAt && typeof v === 'string' && /capturedAt|timestamp|updatedAt|carCapturedTimestamp/i.test(k) && !isNaN(Date.parse(v))) capturedAt = v; else if (v && typeof v === 'object') walk(v); } })(data);
 
+await publish(km, capturedAt);
+
+async function publish(km, capturedAt) {
 const payload = JSON.stringify({ v: 1, km, at: capturedAt || new Date().toISOString(), fetched: new Date().toISOString(), keyExpires });
 
 const enc = new TextEncoder();
@@ -82,3 +107,4 @@ const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k
 const b64 = u => Buffer.from(u).toString('base64');
 writeFileSync(OUT, JSON.stringify({ v: 1, alg: 'PBKDF2-SHA256-250000/AES-256-GCM', salt: b64(salt), iv: b64(iv), ct: b64(ct) }));
 console.log('Готово: криптираният файл е записан.');
+}
