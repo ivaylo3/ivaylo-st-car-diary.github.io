@@ -5,6 +5,10 @@
 import { webcrypto as crypto } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 
+// Съобщенията се показват и като анотации на пускането (видими в GitHub и през API), без стойности.
+const _log = console.log;
+console.log = (...a) => { const m = a.join(' '); _log(m); if (process.env.GITHUB_ACTIONS) _log('::notice title=MyŠkoda::' + m.replace(/%/g, '%25').replace(/\r/g, '').replace(/\n/g, '%0A')); };
+
 const { SKODA_API_KEY, SKODA_VIN, ODO_SECRET } = process.env;
 const OUT = process.argv[2] || 'odo.json';
 if (!SKODA_API_KEY || !SKODA_VIN || !ODO_SECRET) { console.log('Липсва SKODA_API_KEY, SKODA_VIN или ODO_SECRET в GitHub Secrets.'); process.exit(1); }
