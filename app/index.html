@@ -329,11 +329,7 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
   .topbar{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:18;background:var(--bg);padding:8px max(10px,env(safe-area-inset-left,0px)) 6px max(10px,env(safe-area-inset-right,0px));border-bottom:1px solid transparent;transition:border-color .2s}
   .topbar>button{border:0;background:var(--surface);color:var(--fg);width:44px;height:44px;border-radius:14px;display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);position:relative;flex:none}
     .topbar .tb-act{background:var(--accent);color:var(--accent-fg)}
-  .topbar .tb-brand{flex:1;min-width:0;width:auto;height:44px;display:flex;align-items:center;gap:10px;background:none;box-shadow:none;padding:0 4px;border-radius:12px;text-align:left}
-  .tb-brand img{width:40px;height:40px;border-radius:12px;object-fit:cover;flex:none;background:var(--surface)}
-  .tb-brand span{display:flex;flex-direction:column;min-width:0;line-height:1.2}
-  .tb-brand b{font-family:var(--f-display);font-weight:600;font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tb-brand small{font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tb-title{flex:1;min-width:0;font-family:var(--f-display);font-weight:600;font-size:1.15rem;padding-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tb-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px max(10px,env(safe-area-inset-left,0px)) 4px;-webkit-overflow-scrolling:touch}
   .tb-chips::-webkit-scrollbar{display:none}
   .tb-chip{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:600;font-size:.86rem;padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
@@ -1464,11 +1460,11 @@ function navHTML(rows){
   h+='<div class="nav-foot">'+(auth&&auth.email?'<span>'+esc(auth.email)+'</span>':'')+'</div></div></aside>';
   return h;
 }
-// телефон, ред 1: меню · колата (= Табло) · синхронизация · „+“ (меню с действия)
+// телефон, ред 1: меню · име на раздела · синхронизация · „+“ (меню с действия)
 function topbarHTML(rows){
   var att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'});
   return '<div class="topbar"><button type="button" class="tb-menu" data-act="menu" aria-label="Меню" aria-controls="nav" aria-expanded="'+menuIsOpen()+'">'+svg('menu',22)+'</button>'+
-    '<button type="button" class="tb-brand" data-act="tab" data-v="board" aria-label="Табло">'+(S.car.photo?'<img src="'+S.car.photo+'" alt="" style="'+pvStyle(S.car.photoView)+'">':'<img src="icons/icon-192.png" alt="">')+'<span><b>'+esc(S.car.name)+'</b><small>'+fmtK(cur().km)+' км</small></span></button>'+
+    '<span class="tb-title">'+(TAB_TITLE[ui.tab]||'')+'</span>'+
     (odoPass()?syncBtnHTML('tb-sync'):'')+'<button type="button" class="tb-act" data-act="add-menu" aria-label="Добави" title="Добави">'+svg('plus',22)+'</button></div>';
 }
 // телефон, ред 2: разделите като чипове (скролват се със страницата)
