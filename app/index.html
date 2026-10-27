@@ -320,6 +320,55 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
   body.menu-open{overflow:hidden}
 }
 @media (prefers-reduced-motion:reduce){.nav,.nav-scrim{transition:none!important}}
+/* ---- service appointments ---- */
+.nav-pill{margin-left:auto;font-size:.68rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:999px;white-space:nowrap}
+.nav-i[aria-current="page"] .nav-pill{background:var(--surface)}
+.appt-cta,.appt-strip{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:var(--surface);color:var(--fg);border:1px dashed var(--line);border-radius:var(--r-lg);padding:14px 18px;transition:border-color .15s}
+.appt-cta:hover,.appt-strip:hover{border-color:var(--accent)}
+.appt-strip{border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));background:linear-gradient(90deg,var(--accent-soft),var(--surface) 70%);box-shadow:var(--shadow)}
+.appt-strip.past{border-color:var(--warn);background:linear-gradient(90deg,var(--warn-bg),var(--surface) 70%)}
+.appt-strip .sc-t b{font-size:1.02rem}
+.appt-strip .sc-t small{display:block!important;font-size:.78rem;color:var(--muted)}
+.appt-strip>svg:last-child{color:var(--muted);flex:none}
+.ap-pill{font-weight:700;font-size:.82rem;color:var(--accent);background:var(--surface);padding:6px 11px;border-radius:999px;white-space:nowrap;box-shadow:inset 0 0 0 1px var(--line)}
+.appt-strip.past .ap-pill{color:var(--warn)}
+.ap-more{font-size:.75rem;font-weight:700;color:var(--muted)}
+.svc-acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.svc-btn{display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow)}
+.svc-btn span{display:flex;flex-direction:column}
+.svc-btn b{font-size:.95rem}.svc-btn small{font-size:.76rem;color:var(--muted)}
+.svc-btn.p{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.svc-btn.p small{color:inherit;opacity:.85}
+.svc-btn:hover{border-color:var(--accent)}.svc-btn.p:hover{filter:brightness(1.07)}
+@media (max-width:520px){.svc-acts{grid-template-columns:1fr}}
+.appt-list{display:flex;flex-direction:column;gap:12px}
+.appt{display:grid;grid-template-columns:62px minmax(0,1fr);gap:14px;background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow);padding:14px 16px}
+.appt.first{box-shadow:0 0 0 2px var(--accent),var(--shadow)}
+.appt.past{box-shadow:0 0 0 2px var(--warn),var(--shadow)}
+.ap-date{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:var(--accent-soft);color:var(--accent);border-radius:14px;padding:8px 4px;align-self:start;line-height:1.1}
+.appt.past .ap-date{background:var(--warn-bg);color:var(--warn)}
+.ap-date b{font-family:var(--f-display);font-weight:600;font-size:1.5rem}
+.ap-date span{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.ap-body{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ap-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ap-when{font-family:var(--f-display);font-weight:600;font-size:1.02rem}
+.ap-left{font-size:.8rem;font-weight:700;color:var(--accent)}
+.appt.past .ap-left{color:var(--warn)}
+.ap-place{display:flex;align-items:center;gap:6px;font-size:.88rem}
+.ap-place svg{color:var(--muted);flex:none}
+.ap-note{font-size:.86rem;color:var(--muted);white-space:pre-wrap}
+.ap-cal{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);background:var(--sunk);border-radius:10px;padding:7px 10px}
+.ap-cal.on{color:var(--fg)}.ap-cal.on>svg{color:var(--ok)}
+.ap-cal a{display:inline-flex;align-items:center;gap:3px;color:var(--accent);font-weight:600;text-decoration:none;margin-left:auto}
+.ap-cal .link{margin-left:auto}
+.ap-acts{display:flex;flex-wrap:wrap;gap:6px}
+.cal-row{display:flex;align-items:center;gap:12px;background:var(--sunk);border-radius:var(--r-sm);padding:12px 14px;cursor:pointer}
+.cal-row input{width:20px;height:20px;accent-color:var(--accent);flex:none;margin:0}
+.cr-ico{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);flex:none}
+.cr-t{display:flex;flex-direction:column}.cr-t b{font-size:.9rem}.cr-t small{font-size:.76rem;color:var(--muted)}
+.chk .due{display:inline;padding:0;background:none;border:0;border-radius:0}
+.foot svg{vertical-align:-2px}
+.tag svg{vertical-align:-2px;margin-right:4px}
 /* ---- notes as threads ---- */
 .nt-list{display:flex;flex-direction:column;gap:12px}
 .nt{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
@@ -540,7 +589,7 @@ function ssGet(k){try{return JSON.parse(sessionStorage.getItem(k))}catch(e){retu
 function ssSet(k,v){try{sessionStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function ssDel(k){try{sessionStorage.removeItem(k)}catch(e){}}
 var ui={tab:lsGet('kq-tab')||'board',view:lsGet('kq-view')||'time',year:'all',sheet:null,del:null,auth:'need',authMsg:'',authBusy:false,onboard:false};
-if(['board','history','notes','settings','schedule','prefs'].indexOf(ui.tab)<0)ui.tab='board';ui.horizon=24;ui.nq='';ui.editNote=null;ui.open=null;
+if(location.hash==='#service')ui.tab='service';if(['board','history','notes','settings','schedule','prefs','service'].indexOf(ui.tab)<0)ui.tab='board';ui.horizon=24;ui.nq='';ui.editNote=null;ui.open=null;
 var art=null,readOnly=false,saveTimer=null,justOpened=false;
 var root=document.getElementById('root');
 var toastEl=document.createElement('div');toastEl.className='toast';toastEl.hidden=true;toastEl.setAttribute('role','status');document.body.appendChild(toastEl);
@@ -944,7 +993,8 @@ function sheetHTML(){
   if(!ui.sheet)return '';
   var c=cur(),t=today(),s=ui.sheet,title='',sub='',body='';
   var actions='<div class="sheet-actions"><button type="button" class="btn" data-act="close">Отказ</button><button class="btn primary" type="submit">Запиши</button></div>';
-  if(s.type==='photo'){
+  if(s.type==='appt'){var apS=apptSheet(s);title=apS.title;sub=apS.sub;body=apS.body;
+  }else if(s.type==='photo'){
     var pv=s.v;title='Нагласи снимката';sub='Плъзнете снимката или ползвайте плъзгачите.';
     body='<form class="sheet-form" data-form="photo-view"><div class="pv-box" id="pv-box"><img id="pv-img" src="'+S.car.photo+'" alt="" draggable="false" style="'+pvStyle(pv)+'"><span class="pv-hint">'+svg('sliders',14)+' плъзнете</span></div>'+
       '<label class="f">Приближение<input type="range" id="pv-z" min="1" max="3" step="0.02" value="'+pv.z+'"></label>'+
@@ -957,7 +1007,7 @@ function sheetHTML(){
     var ed=s.edit?visitGroup(s.edit):null;
     title=ed?'Редакция на посещение':'Посещение в сервиза';sub=ed?'Променете данните, добавете снимки или подробности.':'Отбележете всичко, направено при това посещение.';
     var rows=allRows(),stOf={};rows.forEach(function(o){if(!o.dc)stOf[o.it.id]=o.x.st});
-    body='<form class="sheet-form" data-form="visit"><div class="fields"><label class="f">Дата<input type="date" id="v-date" value="'+(ed?ed.d:t)+'" required></label><label class="f">Километраж<input type="number" id="v-km" min="0" step="1" inputmode="numeric" value="'+(ed?ed.km:c.km)+'" required></label><label class="f">Обща цена (€)<input type="number" id="v-cost" min="0" step="0.01" inputmode="decimal" value="'+(ed&&ed.cost?ed.cost.toFixed(2):'')+'"></label></div><label class="f">Сервиз<input type="text" id="v-note" placeholder="име на сервиза или място" value="'+esc(ed?ed.note:'')+'"></label><fieldset class="checks"><legend>Какво е направено</legend>';
+    body='<form class="sheet-form" data-form="visit"><div class="fields"><label class="f">Дата<input type="date" id="v-date" value="'+(ed?ed.d:(s.d||t))+'" required></label><label class="f">Километраж<input type="number" id="v-km" min="0" step="1" inputmode="numeric" value="'+(ed?ed.km:c.km)+'" required></label><label class="f">Обща цена (€)<input type="number" id="v-cost" min="0" step="0.01" inputmode="decimal" value="'+(ed&&ed.cost?ed.cost.toFixed(2):'')+'"></label></div><label class="f">Сервиз<input type="text" id="v-note" placeholder="име на сервиза или място" value="'+esc(ed?ed.note:(s.place||''))+'"></label><fieldset class="checks"><legend>Какво е направено</legend>';
     S.groups.forEach(function(g){var its=S.items.filter(function(it){return gid(it)===g.id});if(!its.length)return;
       body+='<div class="cg"><span class="cg-name">'+esc(g.name)+'</span><div class="chips">'+its.map(function(it){var st=stOf[it.id];return '<label class="chk"><input type="checkbox" name="vi" value="'+it.id+'"'+((ed?ed.items:s.pre).indexOf(it.id)>=0?' checked':'')+'><span>'+esc(it.name)+(st&&st!=='ok'?'<span class="due">· '+LBL[st].toLowerCase()+'</span>':'')+'</span></label>'}).join('')+'</div></div>'});
     body+='</fieldset><label class="f">Подробности<textarea id="v-details" rows="3" placeholder="какво точно е сменено, марки и номера на части, препоръки от сервиза">'+esc(ed?ed.details:'')+'</textarea></label>';
@@ -986,7 +1036,7 @@ function render(){
   if(ui.auth!=='ok'&&!hasLocalData()){root.innerHTML=loginScreen();return}
   if(ui.onboard&&ui.auth==='ok'){root.innerHTML=onboardHTML();return}
   var rows=allRows(),h=(ui.tab==='board'?header(rows):pageHead())+authBanner()+(ui.auth==='ok'?staleHTML():'');
-  h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notesPage():ui.tab==='settings'?settings():ui.tab==='prefs'?prefsPage():board(rows);
+  h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notesPage():ui.tab==='settings'?settings():ui.tab==='prefs'?prefsPage():ui.tab==='service'?servicePage():(boardApptCard()+board(rows));
   root.innerHTML=navHTML(rows)+topbarHTML(rows)+'<div class="main"><div class="wrap">'+h+'</div></div>'+sheetHTML();
   if(ui.auth==='ok')writeDueCache();
   document.body.style.overflow=ui.sheet?'hidden':'';
@@ -1025,7 +1075,7 @@ var APP_FOLDER='CarDiaryPersonal',DATA_NAME='car-diary.json',HIST_FOLDER='Ист
 var auth=(function(){try{return JSON.parse(localStorage.getItem('cd-auth'))||{}}catch(e){return {}}})();
 var tokenClient=null,authWaiters=[];
 function tokenValid(){return !!(auth.token&&Date.now()<auth.exp-60000)}
-function saveAuth(){lsSet('cd-auth',JSON.stringify({token:auth.token,exp:auth.exp,email:auth.email}))}
+function saveAuth(){lsSet('cd-auth',JSON.stringify({token:auth.token,exp:auth.exp,email:auth.email,cal:!!auth.cal}))}
 function authErr(){var e=new Error('Нужно е да влезете отново');e.code='auth';return e}
 function gisReady(){return typeof google!=='undefined'&&google.accounts&&google.accounts.oauth2}
 function initGis(){
@@ -1049,7 +1099,7 @@ function onToken(resp){
     return sha256hex(em).then(function(h){
       ui.authBusy=false;
       if(h!==OWNER_HASH){try{google.accounts.oauth2.revoke(tok,function(){})}catch(x){}auth={};lsSet('cd-auth','{}');ui.auth='denied';ui.authMsg='Акаунтът '+em+' няма достъп до тази книжка.';render();return}
-      auth={token:tok,exp:Date.now()+(+resp.expires_in||3600)*1000,email:em};saveAuth();ui.auth='ok';ui.authMsg='';
+      auth={token:tok,exp:Date.now()+(+resp.expires_in||3600)*1000,email:em,cal:google.accounts.oauth2.hasGrantedAllScopes(resp,SCOPE_CAL)};saveAuth();ui.auth='ok';ui.authMsg='';
       render();if(dirty)push();else pull();
     });
   }).catch(function(e){ui.authBusy=false;ui.authMsg='Неуспешна проверка на акаунта: '+errText(e);render()});
@@ -1299,6 +1349,7 @@ function dueSnapshot(){
   var c=cur(),items=[];
   S.items.forEach(function(it){var x=compute(it);if(x.dueDate||x.dueKm!=null)items.push({k:it.id,n:it.name,d:x.dueDate||null,km:x.dueKm!=null?x.dueKm:null})});
   S.docs.forEach(function(dc){items.push({k:'doc-'+dc.id,n:dc.name,d:dc.until,km:null})});
+  if(typeof apptDueItems==='function')apptDueItems().forEach(function(a){items.push(a)});
   return {v:1,km:c.km,kmDate:c.d,rate:rate()||0,days:notifyDays(),overdueEvery:3,kmMarks:[1500,500,0],url:location.href.split('#')[0].split('?')[0],items:items};
 }
 var lastDue='',dueTimer=null;
@@ -1335,18 +1386,18 @@ ICONS.x='<path d="M6 6l12 12M18 6 6 18"/>';
 ICONS.home='<path d="M4 11 12 4.5 20 11v8.5a.5.5 0 0 1-.5.5H15v-5.5H9V20H4.5a.5.5 0 0 1-.5-.5z"/>';
 ICONS.cal='<rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>';
 ICONS.cog='<circle cx="12" cy="12" r="3"/><path d="M19.4 13.6a7.7 7.7 0 0 0 0-3.2l2-1.5-2-3.5-2.3 1a7.6 7.6 0 0 0-2.8-1.6L14 2.5h-4l-.3 2.3a7.6 7.6 0 0 0-2.8 1.6l-2.3-1-2 3.5 2 1.5a7.7 7.7 0 0 0 0 3.2l-2 1.5 2 3.5 2.3-1a7.6 7.6 0 0 0 2.8 1.6l.3 2.3h4l.3-2.3a7.6 7.6 0 0 0 2.8-1.6l2.3 1 2-3.5z"/>';
-var NAV_MAIN=[['board','Табло','home'],['schedule','График','cal'],['notes','Записки','note'],['history','История','clock']];
+var NAV_MAIN=[['board','Табло','home'],['service','Сервиз','wrench'],['schedule','График','cal'],['notes','Записки','note'],['history','История','clock']];
 var NAV_CONF=[['settings','Интервали','sliders'],['prefs','Настройки','cog']];
-var TAB_TITLE={board:'Табло',schedule:'График',notes:'Записки',history:'История',settings:'Интервали',prefs:'Настройки'};
+var TAB_TITLE={board:'Табло',service:'Сервиз',schedule:'График',notes:'Записки',history:'История',settings:'Интервали',prefs:'Настройки'};
 function menuIsOpen(){var b=document.body;return !!(b&&b.classList&&b.classList.contains('menu-open'))}
 function attCount(rows){return rows.filter(function(o){return o.x.st!=='ok'}).length}
 function navHTML(rows){
-  var c=cur(),att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'});
-  function it(t){var on=ui.tab===t[0];return '<button type="button" class="nav-i" data-act="tab" data-v="'+t[0]+'"'+(on?' aria-current="page"':'')+'>'+svg(t[2],20)+'<span>'+t[1]+'</span>'+(t[0]==='board'&&att?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+'</button>'}
+  var c=cur(),att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'}),nx=apptNext();
+  function it(t){var on=ui.tab===t[0];return '<button type="button" class="nav-i" data-act="tab" data-v="'+t[0]+'"'+(on?' aria-current="page"':'')+'>'+svg(t[2],20)+'<span>'+t[1]+'</span>'+(t[0]==='board'&&att?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+(t[0]==='service'&&nx?'<b class="nav-pill">'+apptWhen(nx,true).replace(' в ',' · ')+'</b>':'')+'</button>'}
   var h='<div class="nav-scrim" data-act="menu-close"></div><aside class="nav" id="nav" aria-label="Меню">';
   h+='<button type="button" class="nav-x" data-act="menu-close" aria-label="Затвори менюто">'+svg('x',20)+'</button>';
   h+='<button type="button" class="nav-brand'+(S.car.photo?'':' no-photo')+'" data-act="tab" data-v="board" aria-label="Към таблото">'+(S.car.photo?'<span class="nb-photo"><img src="'+S.car.photo+'" alt="" style="'+pvStyle(S.car.photoView)+'"></span>':'<img class="nb-icon" src="icons/icon-192.png" alt="">')+'<span class="nb-info"><b>'+esc(S.car.name)+'</b>'+(S.car.sub?'<small>'+esc(S.car.sub)+'</small>':'')+'</span><span class="nb-km"><b>'+fmtK(c.km)+'</b> км<span>· '+fmtD(c.d)+'</span></span></button>';
-  h+='<div class="nav-acts"><button type="button" class="nav-cta" data-act="visit">'+svg('plus',18)+'<span>Запиши посещение</span></button><button type="button" class="nav-sec" data-act="odo">'+svg('gauge',18)+'<span>Обнови километража</span></button></div>';
+  h+='<div class="nav-acts"><button type="button" class="nav-cta" data-act="visit">'+svg('plus',18)+'<span>Запиши посещение</span></button><button type="button" class="nav-sec" data-act="appt-new">'+svg('calplus',18)+'<span>Запази час за сервиз</span></button><button type="button" class="nav-sec" data-act="odo">'+svg('gauge',18)+'<span>Обнови километража</span></button></div>';
   h+='<nav class="nav-list" aria-label="Раздели">'+NAV_MAIN.map(it).join('')+'<span class="nav-lbl">Настройка</span>'+NAV_CONF.map(it).join('')+'</nav>';
   h+='<div class="nav-foot">'+(auth&&auth.email?'<span>'+esc(auth.email)+'</span>':'')+'</div></aside>';
   return h;
@@ -1441,6 +1492,190 @@ function iconFor(o){
   if(o.dc)return DOC_ICON[o.dc.id]||iconByName(o.dc.name)||'doc';
   return ITEM_ICON[o.it.id]||iconByName(o.it.name)||GICON[gid(o.it)]||'doc';
 }
+
+// ---------- Запазен час за сервиз: календар, известия, раздел „Сервиз“ ----------
+ICONS.calplus='<rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4M12 12.5v5M9.5 15h5"/>';
+ICONS.bell='<path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5h-14z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>';
+ICONS.ext='<path d="M14 4.5h5.5V10M19.5 4.5 11 13"/><path d="M17.5 14v4.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1H10"/>';
+var SCOPE_CAL='https://www.googleapis.com/auth/calendar.events';
+var WD=['неделя','понеделник','вторник','сряда','четвъртък','петък','събота'];
+var CAL_REMIND=[4320,1440]; // 3 дни и 1 ден преди
+
+function appts(){return S.appts||[]}
+function apptAt(a){return a.d+'T'+(a.t||'09:00')}
+function apptFind(id){return appts().find(function(a){return a.id===id})}
+// предстоящи (и минали, но още неотбелязани) – без направените
+function apptsOpen(){return appts().filter(function(a){return !a.done}).sort(function(a,b){return apptAt(a)<apptAt(b)?-1:1})}
+function apptNext(){var t=today();return apptsOpen().filter(function(a){return a.d>=t})[0]||null}
+function apptPast(a){var n=new Date(),p=a.d.split('-'),hm=(a.t||'23:59').split(':');return new Date(+p[0],p[1]-1,+p[2],+hm[0],+hm[1])<n}
+function apptWhen(a,short){var p=a.d.split('-'),dt=new Date(+p[0],p[1]-1,+p[2]);return (short?'':WD[dt.getDay()]+', ')+p[2]+'.'+p[1]+(short?'':'.'+p[0])+(a.t?' в '+a.t:'')}
+function apptLeft(a){var n=days(today(),a.d);return n<0?(apptPast(a)?'мина':'днес'):n===0?(apptPast(a)?'мина':'днес'):n===1?'утре':'след '+n+' дни'}
+function apptItemsNames(a){return (a.items||[]).map(function(id){var it=findItem(id);return it?it.name:null}).filter(Boolean)}
+function apptPlaces(){var m={};appts().forEach(function(a){if(a.place)m[a.place]=1});S.log.forEach(function(e){if(!e.doc&&e.note&&e.note.length<60)m[e.note]=1});return Object.keys(m).slice(0,20)}
+
+// ---------- Google Календар ----------
+var calClient=null,calWait=null;
+function calReady(){return !!(auth&&auth.cal&&tokenValid())}
+function ensureCal(cb){
+  if(calReady()){cb(null);return}
+  if(!gisReady()){cb(new Error('Google вход не се зареди'));return}
+  if(!calClient)calClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPE_CAL,include_granted_scopes:true,callback:function(resp){
+      var w=calWait;calWait=null;if(!w)return;
+      if(!resp||resp.error||!google.accounts.oauth2.hasGrantedAllScopes(resp,SCOPE_CAL)){w(new Error('Не беше разрешен достъп до календара'));return}
+      var tok=resp.access_token;
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+tok}}).then(function(r){return r.json()}).then(function(u){
+        return sha256hex(String(u&&u.email||'').trim().toLowerCase()).then(function(h){
+          if(h!==OWNER_HASH){w(new Error('Избран е друг акаунт'));return}
+          auth.token=tok;auth.exp=Date.now()+(+resp.expires_in||3600)*1000;auth.cal=true;saveAuth();ui.auth='ok';w(null);
+        });
+      }).catch(function(e){w(e)});
+    },error_callback:function(e){var w=calWait;calWait=null;if(w)w(new Error(e&&e.type==='popup_closed'?'Прозорецът за разрешение беше затворен':'Разрешението не мина'))}});
+  calWait=cb;
+  calClient.requestAccessToken({prompt:'',login_hint:auth.email||undefined});
+}
+function calApi(method,path,body){
+  return fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events'+path,{method:method,headers:{Authorization:'Bearer '+auth.token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}).then(function(r){
+    if(r.status===204||(method==='DELETE'&&(r.status===404||r.status===410)))return null;
+    if(r.status===401){auth.cal=false;saveAuth();throw new Error('Достъпът до календара изтече, опитайте пак')}
+    return r.json().then(function(j){
+      if(!r.ok){var m=(j&&j.error&&j.error.message)||('HTTP '+r.status);var e=new Error(/has not been used|is disabled|accessNotConfigured/i.test(m)?'Google Calendar API не е включен в проекта CarDiaryPersonal':m);e.code=r.status;e.api=/has not been used|is disabled|accessNotConfigured/i.test(m);throw e}
+      return j;
+    });
+  });
+}
+function addMin(d,t,min){var p=d.split('-'),hm=t.split(':'),x=new Date(+p[0],p[1]-1,+p[2],+hm[0],+hm[1]+min);return x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate())+'T'+pad(x.getHours())+':'+pad(x.getMinutes())+':00'}
+function calEvent(a){
+  var tz='Europe/Sofia';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz}catch(e){}
+  var names=apptItemsNames(a),desc=[S.car.name+(S.car.sub?' ('+S.car.sub+')':'')];
+  if(names.length)desc.push('','За смяна / проверка:',names.map(function(n){return '• '+n}).join('\n'));
+  if(a.note)desc.push('',a.note);
+  var hr=String(location.href||'').split('#')[0].split('?')[0];if(hr)desc.push('','Car Diary: '+hr);
+  return {summary:'Сервиз'+(a.place?': '+a.place:' – '+S.car.name),location:a.place||undefined,description:desc.join('\n'),
+    start:{dateTime:a.d+'T'+(a.t||'09:00')+':00',timeZone:tz},end:{dateTime:addMin(a.d,a.t||'09:00',a.dur||60),timeZone:tz},
+    reminders:{useDefault:false,overrides:CAL_REMIND.map(function(m){return {method:'popup',minutes:m}})},
+    extendedProperties:{private:{carDiary:a.id}}};
+}
+function setApptCal(id,cal,err){var a=apptFind(id);if(!a)return;if(cal)a.cal=cal;else delete a.cal;if(err)a.calErr=err;else delete a.calErr;cacheSave();pendingMsgs.push(cal?'Събитие в календара':'Календар');save();render()}
+function syncApptCal(id){
+  var a=apptFind(id);if(!a)return;
+  ui.calBusy=id;render();
+  ensureCal(function(err){
+    if(err){ui.calBusy=null;setApptCal(id,a.cal||null,err.message);toast(err.message,false,6000);return}
+    var a2=apptFind(id);if(!a2){ui.calBusy=null;return}
+    var p=a2.cal&&a2.cal.id?calApi('PATCH','/'+encodeURIComponent(a2.cal.id),calEvent(a2)).catch(function(e){if(e.code===404||e.code===410)return calApi('POST','',calEvent(a2));throw e}):calApi('POST','',calEvent(a2));
+    p.then(function(ev){ui.calBusy=null;setApptCal(id,{id:ev.id,link:ev.htmlLink},null);toast(a2.cal?'Събитието в календара е обновено':'Добавено в Google Календар с напомняния 3 дни и 1 ден преди',false,6000)})
+     .catch(function(e){ui.calBusy=null;setApptCal(id,a2.cal||null,e.message);toast('Календарът не прие събитието: '+e.message,false,8000)});
+  });
+}
+function deleteApptCal(a,then){
+  if(!a.cal||!a.cal.id){then();return}
+  ensureCal(function(err){if(err){then(err);return}calApi('DELETE','/'+encodeURIComponent(a.cal.id)).then(function(){then()},function(e){then(e)})});
+}
+
+// ---------- Формуляр ----------
+function apptSheet(s){
+  var a=s.id?apptFind(s.id):null,c=cur(),t=today();
+  var rows=allRows(),stOf={};rows.forEach(function(o){if(!o.dc)stOf[o.it.id]=o.x.st});
+  var pre=a?(a.items||[]):rows.filter(function(o){return !o.dc&&o.x.st!=='ok'}).map(function(o){return o.it.id});
+  var tm=new Date(Date.now()+7*864e5),defD=tm.getFullYear()+'-'+pad(tm.getMonth()+1)+'-'+pad(tm.getDate());
+  var b='<form class="sheet-form" data-form="appt"><div class="fields"><label class="f">Дата<input type="date" id="ap-date" min="'+t+'" value="'+(a?a.d:defD)+'" required></label><label class="f">Час<input type="time" id="ap-time" value="'+(a&&a.t||'09:00')+'" step="300" required></label><label class="f">Продължителност<select id="ap-dur">'+[[30,'30 мин'],[60,'1 час'],[120,'2 часа'],[180,'3 часа'],[240,'4 часа'],[480,'цял ден']].map(function(o){return '<option value="'+o[0]+'"'+((a?a.dur||60:60)===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label></div>';
+  b+='<label class="f">Сервиз<input type="text" id="ap-place" list="ap-places" placeholder="име или адрес на сервиза" value="'+esc(a&&a.place||'')+'"></label><datalist id="ap-places">'+apptPlaces().map(function(p){return '<option value="'+esc(p)+'">'}).join('')+'</datalist>';
+  b+='<fieldset class="checks"><legend>Какво ще се прави</legend>';
+  S.groups.forEach(function(g){var its=S.items.filter(function(it){return gid(it)===g.id});if(!its.length)return;
+    b+='<div class="cg"><span class="cg-name">'+esc(g.name)+'</span><div class="chips">'+its.map(function(it){var st=stOf[it.id];return '<label class="chk"><input type="checkbox" name="api" value="'+it.id+'"'+(pre.indexOf(it.id)>=0?' checked':'')+'><span>'+esc(it.name)+(st&&st!=='ok'?'<span class="due">· '+LBL[st].toLowerCase()+'</span>':'')+'</span></label>'}).join('')+'</div></div>'});
+  b+='</fieldset><label class="f">Бележка<textarea id="ap-note" rows="2" placeholder="напр. да погледнат шума отпред вдясно">'+esc(a&&a.note||'')+'</textarea></label>';
+  b+='<label class="cal-row"><input type="checkbox" id="ap-cal"'+(!a||a.cal?' checked':'')+'><span class="cr-ico">'+svg('cal',18)+'</span><span class="cr-t"><b>'+(a&&a.cal?'Обнови събитието в Google Календар':'Добави в Google Календар')+'</b><small>с напомняния 3 дни и 1 ден преди</small></span></label>';
+  b+='<p class="foot">'+svg('bell',14)+' Push известие: 3 дни и 1 ден преди, и в самия ден, ако часът е след 11:00.</p><p class="err" id="ap-err" hidden></p>';
+  b+='<div class="sheet-actions"><button type="button" class="btn" data-act="close">Отказ</button><button class="btn primary" type="submit">'+(a?'Запази промените':'Запази часа')+'</button></div></form>';
+  return {title:a?'Промяна на запазен час':'Запазен час за сервиз',sub:a?'Промените се отразяват и в календара.':'Изберете дата, час и какво ще се прави.',body:b};
+}
+function submitAppt(f){
+  function val(id){var el=document.getElementById(id);return el?el.value:''}
+  var d=val('ap-date'),tm=val('ap-time');
+  if(!d||!tm){var er=document.getElementById('ap-err');if(er){er.textContent='Изберете дата и час.';er.hidden=false}return}
+  var items=Array.prototype.map.call(f.querySelectorAll('input[name=api]:checked'),function(i){return i.value});
+  var place=val('ap-place').trim(),note=val('ap-note').trim(),dur=parseInt(val('ap-dur'),10)||60,wantCal=document.getElementById('ap-cal').checked;
+  var editId=ui.sheet&&ui.sheet.id,id=editId||uid(),old=editId?apptFind(editId):null;
+  var changed=!old||old.d!==d||old.t!==tm||old.place!==place||old.note!==note||(old.dur||60)!==dur||JSON.stringify(old.items||[])!==JSON.stringify(items);
+  act(editId?'Часът е променен':'Запазен час: '+apptWhen({d:d,t:tm},true),function(){
+    S.appts=S.appts||[];var a=S.appts.find(function(x){return x.id===id});
+    if(!a){a={id:id};S.appts.push(a)}
+    a.d=d;a.t=tm;a.dur=dur;if(place)a.place=place;else delete a.place;if(note)a.note=note;else delete a.note;if(items.length)a.items=items;else delete a.items;
+  });
+  if(ui.tab!=='service'&&ui.tab!=='board'){ui.tab='service';lsSet('kq-tab','service');render()}
+  var now=apptFind(id);
+  if(wantCal&&now&&(changed||!now.cal))syncApptCal(id);
+  else if(!wantCal&&now&&now.cal){deleteApptCal(now,function(e){if(!e)setApptCal(id,null,null)})}
+}
+
+// ---------- Карти ----------
+function apptCard(a,big){
+  var past=apptPast(a),names=apptItemsNames(a),busy=ui.calBusy===a.id;
+  var h='<article class="appt'+(past?' past':'')+(big?' first':'')+'"><div class="ap-date"><span class="ap-wd">'+WD[new Date(a.d+'T12:00').getDay()].slice(0,3)+'</span><b>'+a.d.slice(8)+'</b><span>'+['яну','фев','мар','апр','май','юни','юли','авг','сеп','окт','ное','дек'][+a.d.slice(5,7)-1]+'</span></div>';
+  h+='<div class="ap-body"><div class="ap-top"><b class="ap-when">'+apptWhen(a)+'</b><span class="ap-left">'+(past?'мина – запишете го':apptLeft(a))+'</span></div>';
+  if(a.place)h+='<div class="ap-place">'+svg('wrench',14)+'<span>'+esc(a.place)+'</span></div>';
+  if(names.length)h+='<div class="tags">'+names.map(function(n){return '<span class="tag">'+esc(n)+'</span>'}).join('')+'</div>';
+  if(a.note)h+='<div class="ap-note">'+esc(a.note)+'</div>';
+  h+='<div class="ap-cal'+(a.cal?' on':'')+'">'+svg('cal',14)+(busy?'<span>Записване в календара…</span>':a.cal?'<span>В Google Календар · напомняния 3 дни и 1 ден преди</span>'+(a.cal.link?'<a href="'+esc(a.cal.link)+'" target="_blank" rel="noopener">Отвори'+svg('ext',13)+'</a>':''):'<span>'+(a.calErr?esc(a.calErr):'Не е в календара')+'</span><button type="button" class="link" data-act="appt-cal" data-id="'+a.id+'">Добави</button>')+'</div>';
+  if(a.calErr&&/API не е включен/.test(a.calErr))h+='<p class="foot">Включете го веднъж: <a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" rel="noopener">Google Cloud → Google Calendar API → Enable</a> (проект CarDiaryPersonal), после натиснете „Добави“.</p>';
+  h+='<div class="ap-acts"><button type="button" class="btn small'+(past?' primary':'')+'" data-act="appt-done" data-id="'+a.id+'">'+(past?'Запиши посещението':'Направено')+'</button><button type="button" class="btn small" data-act="appt-edit" data-id="'+a.id+'">Промени</button><button type="button" class="btn small danger" data-act="appt-del" data-id="'+a.id+'">'+(ui.del==='ap:'+a.id?'Потвърди отмяната':'Отмени часа')+'</button></div>';
+  return h+'</div></article>';
+}
+function boardApptCard(){
+  var a=apptsOpen()[0];
+  if(!a)return '<button type="button" class="appt-cta" data-act="appt-new"><span class="sc-ico">'+svg('calplus',20)+'</span><span class="sc-t"><b>Запази час за сервиз</b><small>Събитие в календара и напомняния 3 дни и 1 ден преди</small></span><span class="sc-go">Запази'+svg('chev',16)+'</span></button>';
+  var past=apptPast(a),n=apptsOpen().length;
+  return '<button type="button" class="appt-strip'+(past?' past':'')+'" data-act="tab" data-v="service"><span class="sc-ico">'+svg('cal',20)+'</span><span class="sc-t"><small>'+(past?'Мина ли посещението?':'Запазен час за сервиз')+'</small><b>'+WD[new Date(a.d+'T12:00').getDay()]+', '+apptWhen(a,true)+'</b>'+(a.place?'<small>'+esc(a.place)+'</small>':'')+'</span><span class="ap-pill">'+(past?'запишете го':apptLeft(a))+'</span>'+(n>1?'<span class="ap-more">+'+(n-1)+'</span>':'')+svg('chev',16)+'</button>';
+}
+
+// ---------- Раздел „Сервиз“ ----------
+function serviceVisits(){
+  var map={},order=[];
+  S.log.forEach(function(e){if(e.doc)return;var k=e.v||e.id;if(!map[k]){map[k]=[];order.push(k)}map[k].push(e)});
+  return order.map(function(k){var es=map[k];return {k:k,es:es,d:es[0].d,km:es[0].km,tyre:!!es[0].tyre,cost:es.reduce(function(s,e){return s+(e.cost||0)},0),note:es.map(function(e){return e.note}).filter(Boolean).join(' · ')}})
+    .sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:(b.km||0)-(a.km||0)});
+}
+function servicePage(){
+  var open=apptsOpen(),vs=serviceVisits();
+  var h='<div class="svc-acts"><button type="button" class="svc-btn p" data-act="appt-new">'+svg('calplus',20)+'<span><b>Запази час</b><small>за предстоящо посещение</small></span></button><button type="button" class="svc-btn" data-act="visit">'+svg('plus',20)+'<span><b>Запиши посещение</b><small>вече направено</small></span></button></div>';
+  h+='<section><div class="sec-head"><h2>Запазени часове</h2>'+(open.length?'<span class="muted" style="font-size:.82rem">'+open.length+'</span>':'')+'</div>';
+  h+=open.length?'<div class="appt-list">'+open.map(function(a,i){return apptCard(a,i===0)}).join('')+'</div>':'<div class="empty">Няма запазен час. Натиснете „Запази час“ – ще получите събитие в Google Календар и push известия 3 дни и 1 ден преди.</div>';
+  h+='</section>';
+  var tot=vs.reduce(function(s,g){return s+g.cost},0),yr=today().slice(0,4),ty=vs.filter(function(g){return g.d.slice(0,4)===yr}).reduce(function(s,g){return s+g.cost},0);
+  h+='<section><div class="sec-head"><h2>История на посещенията</h2><span class="muted" style="font-size:.82rem">'+vs.length+(vs.length===1?' посещение':' посещения')+'</span></div>';
+  if(vs.length)h+='<div class="tiles"><div class="tile"><span class="eyebrow">Посещения</span><span class="num">'+vs.length+'</span></div><div class="tile"><span class="eyebrow">За '+yr+'</span><span class="num">'+fmtE(ty)+'</span></div><div class="tile"><span class="eyebrow">Общо</span><span class="num">'+fmtE(tot)+'</span></div></div>';
+  if(!vs.length)h+='<div class="empty">Още няма записани посещения.</div>';
+  else{
+    h+='<div class="hlist">';
+    vs.forEach(function(g){
+      var dd=g.d.split('-');
+      var tags=g.es.map(function(e){var src=S.items.find(function(i){return i.id===e.item});return '<span class="tag">'+svg(src?iconFor({it:src}):'wrench',13)+esc(src?src.name:e.name)+'</span>'}).join('');
+      var meta=[g.km!=null?fmtK(g.km)+' км':'',esc(g.note)].filter(Boolean).join(' · ');
+      var det=g.es.map(function(e){return e.details}).filter(Boolean)[0]||'',phs=[];g.es.forEach(function(e){(e.photos||[]).forEach(function(x){phs.push(x)})});
+      h+='<article class="hv"><div class="hv-date"><span class="d">'+dd[2]+'.'+dd[1]+'</span><span class="y">'+dd[0]+'</span></div><div class="hv-body"><div class="tags">'+tags+'</div>'+(meta?'<div class="hv-meta">'+meta+'</div>':'')+(det?'<div class="hv-det">'+esc(det)+'</div>':'')+(phs.length?'<div class="ph-grid small">'+photosHTML(phs,false)+'</div>':'')+'</div><div class="hv-side">'+(g.cost?'<span class="num">'+fmtE(g.cost)+'</span>':'<span class="muted" style="font-size:.8rem">без цена</span>')+(g.tyre?'':'<button class="btn small" data-act="editvisit" data-id="'+esc(g.k)+'">Редактирай</button>')+'<button class="btn small danger" data-act="delvisit" data-id="'+esc(g.k)+'">'+(ui.del==='v:'+g.k?'Потвърди изтриването':'Изтрий')+'</button></div></article>';
+    });
+    h+='</div>';
+  }
+  return h+'</section>';
+}
+function apptAction(a,id){
+  if(a==='appt-new'){openSheet({type:'appt'});return true}
+  if(a==='appt-edit'){openSheet({type:'appt',id:id});return true}
+  if(a==='appt-cal'){syncApptCal(id);return true}
+  if(a==='appt-done'){var ap=apptFind(id);if(!ap)return true;openSheet({type:'visit',pre:(ap.items||[]).slice(),photos:[],d:ap.d<=today()?ap.d:today(),place:ap.place||'',appt:ap.id});return true}
+  if(a==='appt-del'){
+    if(ui.del!=='ap:'+id){ui.del='ap:'+id;render();return true}
+    var ad=apptFind(id);if(!ad)return true;ui.del=null;
+    deleteApptCal(ad,function(e){
+      if(e)toast('Събитието в календара не беше изтрито: '+e.message,false,7000);
+      act('Часът е отменен',function(){S.appts=(S.appts||[]).filter(function(x){return x.id!==id})});
+    });
+    return true;
+  }
+  return false;
+}
+// push: запазените часове влизат в копието на сроковете за service worker-а
+function apptDueItems(){var t=today();return apptsOpen().filter(function(a){return a.d>=t}).map(function(a){return {k:'appt-'+a.id,n:'Сервиз'+(a.place?' · '+a.place:''),d:a.d,km:null,t:a.t||'',appt:1,days:[3,1,0]}})}
 
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
 var pullTimer=null;
@@ -1612,6 +1847,7 @@ root.addEventListener('click',function(e){
   if(a==='push-off'){disablePush();return}
   if(a==='push-test'){testNotification();return}
   if(a==='push-copy'){var pc=ui.push&&ui.push.sub||'';ui.pushCodeOpen=true;var sel=function(){var ta=document.getElementById('push-code');if(ta){ta.focus();ta.select()}toast('Кодът е маркиран – копирайте с Ctrl+C / „Копиране“',false,5000)};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(pc).then(function(){toast('Кодът е копиран',false,3000)},sel);else sel();return}
+  if(apptAction(a,id))return;
   if(a==='reply'){ui.replyTo=id;ui.editNote=null;ui.del=null;render();focusReply();return}
   if(a==='reply-cancel'){ui.replyTo=null;render();return}
   if(a==='reply-del'){var rp=String(id).split('/');if(ui.del!=='nr:'+id){ui.del='nr:'+id;render();return}act('Коментарът е изтрит',function(){var rn=S.notes.find(function(n){return n.id===rp[0]});if(rn&&rn.replies){rn.replies=rn.replies.filter(function(r){return r.id!==rp[1]});if(!rn.replies.length)delete rn.replies}});return}
@@ -1701,6 +1937,7 @@ function handleForm(f){
   if(k==='note-add'){
     var nt=val('n-text').trim();if(!nt)return;var nd=val('n-date')||today(),nk=parseInt(val('n-km'),10),npin=document.getElementById('n-pin').checked;
     act('Записката е добавена',function(){var n={id:uid(),d:nd,text:nt};if(!isNaN(nk))n.km=nk;if(npin)n.pin=true;S.notes.push(n)});return}
+  if(k==='appt'){submitAppt(f);return}
   if(k==='reply-add'){
     var rid=f.getAttribute('data-id'),rt=val('r-text').trim();if(!rt)return;var rkm=cur().km;
     ui.replyTo=null;act('Коментарът е добавен',function(){var rn=S.notes.find(function(n){return n.id===rid});if(!rn)return;(rn.replies=rn.replies||[]).push({id:uid(),d:today(),km:rkm,text:rt})});return}
@@ -1714,12 +1951,14 @@ function handleForm(f){
     var edOrig=ui.sheet&&ui.sheet.edit?visitGroup(ui.sheet.edit):null;if(!kmGate(f,'v-err',d,km,edOrig?{d:edOrig.d,km:edOrig.km}:null))return;
     var cost=parseFloat(val('v-cost')),note=val('v-note').trim(),det=val('v-details').trim(),editK=ui.sheet&&ui.sheet.edit,vid=editK||uid();
     var photos=(ui.sheet&&ui.sheet.photos)||[],pend=photos.filter(function(p){return !p.id&&p.full}),GSr=gs();
+    var apId=ui.sheet&&ui.sheet.appt;
     var sbtn=f.querySelector('button[type=submit]');
     function finish(){
       act(editK?'Посещението е обновено':'Записано: '+ids.length+(ids.length===1?' позиция':' позиции'),function(){
         if(editK)S.log=S.log.filter(function(e){return (e.v||e.id)!==editK});
         ids.forEach(function(id,i){var it=findItem(id);var en={id:vid+'-'+i,v:vid,item:id,name:it?it.name:'',d:d,km:km};if(i===0){if(note)en.note=note;if(det)en.details=det;if(cost>0)en.cost=Math.round(cost*100)/100;if(photos.length)en.photos=photos.map(function(p){return p.id?{id:p.id,t:p.t}:{t:p.t}})}S.log.push(en)});
         if(km>cur().km)S.readings.push({d:d,km:km,src:'visit'});
+        if(apId){var apD=(S.appts||[]).find(function(x){return x.id===apId});if(apD)apD.done=vid}
       });
     }
     if(!pend.length||!GSr){if(pend.length)toast('Без връзка с Google: пазя само умалени снимки',false,4000);pend.forEach(function(p){delete p.full});finish();return}
