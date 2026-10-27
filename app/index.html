@@ -280,12 +280,33 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 .nb-km b{font-family:var(--f-display);font-weight:600;font-size:1.2rem;color:var(--fg)}
 .nb-km span{margin-left:2px}
 .nav-x{position:absolute;top:calc(22px + env(safe-area-inset-top,0px));right:22px;z-index:2;border:0;background:rgba(12,20,18,.6);color:#fff;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(4px)}
-.nav-acts{display:flex;flex-direction:column;gap:8px}
 .nav-cta,.nav-sec{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:14px;padding:12px 14px;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left}
 .nav-cta{background:var(--accent);color:var(--accent-fg)}
 .nav-cta:hover{filter:brightness(1.07)}
-.nav-sec{background:var(--sunk);color:var(--fg)}
-.nav-sec:hover{background:var(--accent-soft);color:var(--accent)}
+.nav-bottom{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:6px}
+.nav-bottom>.nav-lbl{padding-top:4px}
+.nav-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nav-tile{display:flex;flex-direction:column;align-items:flex-start;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:14px;padding:10px 12px;font-weight:600;font-size:.82rem;cursor:pointer;text-align:left}
+.nav-tile svg{color:var(--accent)}
+.nav-tile:hover{border-color:var(--accent);background:var(--accent-soft)}
+.nav-sync-card{display:flex;align-items:center;gap:10px;width:100%;border:0;background:var(--sunk);color:var(--fg);border-radius:14px;padding:10px 10px 10px 12px;cursor:pointer;text-align:left}
+.nav-sync-card:hover{background:var(--accent-soft)}
+.nsc-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.nsc-t small{display:flex;align-items:center;gap:6px;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.nsc-t b{font-size:.86rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nsc-dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.nav-sync-card.warn .nsc-dot{background:var(--warn)}
+.nsc-btn{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--surface);color:var(--accent);flex:none}
+.nsc-btn i{display:inline-grid}
+.nav-foot{margin-top:2px}
+.tb-chips{display:none}
+.add-list{display:flex;flex-direction:column;gap:8px}
+.add-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--sunk);color:var(--fg);border-radius:14px;padding:12px 14px;cursor:pointer;text-align:left}
+.add-i:hover{background:var(--accent-soft)}
+.add-i>svg{color:var(--muted);flex:none}
+.add-ico{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent);flex:none}
+.add-i:first-child .add-ico{background:var(--accent);color:var(--accent-fg)}
+.add-t{flex:1;min-width:0;display:flex;flex-direction:column}.add-t b{font-size:.95rem}.add-t small{font-size:.78rem;color:var(--muted)}
 .nav-list{display:flex;flex-direction:column;gap:2px}
 .nav-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:var(--muted);padding:10px 12px;border-radius:12px;font-weight:600;font-size:.92rem;cursor:pointer;text-align:left}
 .nav-i:hover{background:var(--sunk);color:var(--fg)}
@@ -307,10 +328,17 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
   .wrap{padding-bottom:72px!important;padding-top:12px}
   .topbar{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:18;background:var(--bg);padding:8px max(10px,env(safe-area-inset-left,0px)) 6px max(10px,env(safe-area-inset-right,0px));border-bottom:1px solid transparent;transition:border-color .2s}
   .topbar>button{border:0;background:var(--surface);color:var(--fg);width:44px;height:44px;border-radius:14px;display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);position:relative;flex:none}
-  .topbar .tb-act{background:var(--accent);color:var(--accent-fg)}
-  .topbar .on{color:var(--accent);box-shadow:var(--shadow),inset 0 0 0 1.5px var(--accent)}
-  .tb-home .badge{position:absolute;top:-5px;right:-5px}
-  .tb-title{flex:1;min-width:0;font-family:var(--f-display);font-weight:600;font-size:1.05rem;padding-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar .tb-act{background:var(--accent);color:var(--accent-fg)}
+  .topbar .tb-brand{flex:1;min-width:0;width:auto;height:44px;display:flex;align-items:center;gap:10px;background:none;box-shadow:none;padding:0 4px;border-radius:12px;text-align:left}
+  .tb-brand img{width:40px;height:40px;border-radius:12px;object-fit:cover;flex:none;background:var(--surface)}
+  .tb-brand span{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+  .tb-brand b{font-family:var(--f-display);font-weight:600;font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-brand small{font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tb-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px max(10px,env(safe-area-inset-left,0px)) 4px;-webkit-overflow-scrolling:touch}
+  .tb-chips::-webkit-scrollbar{display:none}
+  .tb-chip{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:600;font-size:.86rem;padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  .tb-chip[aria-current="page"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+  .tb-chip .badge{min-width:18px;height:18px;font-size:.66rem}
   .page-head h1{display:none}
   .page-head{padding-top:0}
   .nav{position:fixed;top:0;bottom:0;left:0;width:min(300px,86vw);z-index:41;transform:translateX(-104%);transition:transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s;visibility:hidden;box-shadow:0 0 40px rgba(0,0,0,.25);border-radius:0 22px 22px 0;padding-top:calc(16px + env(safe-area-inset-top,0px))}
@@ -1015,7 +1043,8 @@ function sheetHTML(){
   if(!ui.sheet)return '';
   var c=cur(),t=today(),s=ui.sheet,title='',sub='',body='';
   var actions='<div class="sheet-actions"><button type="button" class="btn" data-act="close">Отказ</button><button class="btn primary" type="submit">Запиши</button></div>';
-  if(s.type==='sync'){var syS=syncSheet();title=syS.title;sub=syS.sub;body=syS.body;
+  if(s.type==='add'){var adS=addSheet();title=adS.title;sub=adS.sub;body=adS.body;
+  }else if(s.type==='sync'){var syS=syncSheet();title=syS.title;sub=syS.sub;body=syS.body;
   }else if(s.type==='appt'){var apS=apptSheet(s);title=apS.title;sub=apS.sub;body=apS.body;
   }else if(s.type==='photo'){
     var pv=s.v;title='Нагласи снимката';sub='Плъзнете снимката или ползвайте плъзгачите.';
@@ -1060,7 +1089,7 @@ function render(){
   if(ui.onboard&&ui.auth==='ok'){root.innerHTML=onboardHTML();return}
   var rows=allRows(),h=(ui.tab==='board'?header(rows):pageHead())+authBanner()+odoBanner()+(ui.auth==='ok'?staleHTML():'');
   h+=ui.tab==='schedule'?schedule():ui.tab==='history'?history():ui.tab==='notes'?notesPage():ui.tab==='settings'?settings():ui.tab==='prefs'?prefsPage():ui.tab==='service'?servicePage():(boardApptCard()+board(rows));
-  root.innerHTML=navHTML(rows)+topbarHTML(rows)+'<div class="main"><div class="wrap">'+h+'</div></div>'+sheetHTML();
+  root.innerHTML=navHTML(rows)+topbarHTML(rows)+'<div class="main">'+chipsHTML(rows)+'<div class="wrap">'+h+'</div></div>'+sheetHTML();
   if(ui.auth==='ok')writeDueCache();
   document.body.style.overflow=ui.sheet?'hidden':'';
   if(justOpened){justOpened=false;var f=root.querySelector('.sheet input[type=number], .sheet input[type=date]');if(f)f.focus()}
@@ -1414,25 +1443,46 @@ var NAV_CONF=[['settings','Интервали','sliders'],['prefs','Настро
 var TAB_TITLE={board:'Табло',service:'Сервиз',schedule:'График',notes:'Записки',history:'История',settings:'Интервали',prefs:'Настройки'};
 function menuIsOpen(){var b=document.body;return !!(b&&b.classList&&b.classList.contains('menu-open'))}
 function attCount(rows){return rows.filter(function(o){return o.x.st!=='ok'}).length}
+function agoText(iso){var d=Date.now()-Date.parse(iso);if(isNaN(d))return '';var m=Math.round(d/60000);if(m<2)return 'току-що';if(m<60)return 'преди '+m+' мин';var h=Math.round(m/60);if(h<24)return 'преди '+h+' ч';var dd=Math.round(h/24);return dd===1?'вчера':'преди '+dd+' дни'}
+// карта „MyŠkoda“ най-долу в менюто: последен километраж от колата + синхронизация
+function syncCardHTML(){
+  if(!odoPass())return '';
+  var l=odoLast(),busy=ui.sync&&ui.sync.busy,warn=l&&l.lastOk===false;
+  var line=busy?'Синхронизиране…':l&&typeof l.km==='number'?fmtK(l.km)+' км · '+agoText(l.at):'Още няма данни';
+  return '<button type="button" class="nav-sync-card'+(busy?' busy':'')+(warn?' warn':'')+'" data-act="odo-sync" title="Синхронизирай с MyŠkoda"><span class="nsc-t"><small><i class="nsc-dot"></i>MyŠkoda</small><b>'+line+'</b></span><span class="nsc-btn"><i class="'+(busy?'spin':'')+'">'+svg('sync',18)+'</i></span></button>';
+}
 function navHTML(rows){
   var c=cur(),att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'}),nx=apptNext();
   function it(t){var on=ui.tab===t[0];return '<button type="button" class="nav-i" data-act="tab" data-v="'+t[0]+'"'+(on?' aria-current="page"':'')+'>'+svg(t[2],20)+'<span>'+t[1]+'</span>'+(t[0]==='board'&&att?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+(t[0]==='service'&&nx?'<b class="nav-pill">'+apptWhen(nx,true).replace(' в ',' · ')+'</b>':'')+'</button>'}
   var h='<div class="nav-scrim" data-act="menu-close"></div><aside class="nav" id="nav" aria-label="Меню">';
   h+='<button type="button" class="nav-x" data-act="menu-close" aria-label="Затвори менюто">'+svg('x',20)+'</button>';
   h+='<button type="button" class="nav-brand'+(S.car.photo?'':' no-photo')+'" data-act="tab" data-v="board" aria-label="Към таблото">'+(S.car.photo?'<span class="nb-photo"><img src="'+S.car.photo+'" alt="" style="'+pvStyle(S.car.photoView)+'"></span>':'<img class="nb-icon" src="icons/icon-192.png" alt="">')+'<span class="nb-info"><b>'+esc(S.car.name)+'</b>'+(S.car.sub?'<small>'+esc(S.car.sub)+'</small>':'')+'</span><span class="nb-km"><b>'+fmtK(c.km)+'</b> км<span>· '+fmtD(c.d)+'</span></span></button>';
-  h+='<div class="nav-acts"><button type="button" class="nav-cta" data-act="visit">'+svg('plus',18)+'<span>Запиши посещение</span></button><button type="button" class="nav-sec" data-act="appt-new">'+svg('calplus',18)+'<span>Запази час за сервиз</span></button><button type="button" class="nav-sec" data-act="odo">'+svg('gauge',18)+'<span>Обнови километража</span></button>'+(odoPass()?syncBtnHTML('nav-sec nav-sync'):'')+'</div>';
   h+='<nav class="nav-list" aria-label="Раздели">'+NAV_MAIN.map(it).join('')+'<span class="nav-lbl">Настройка</span>'+NAV_CONF.map(it).join('')+'</nav>';
-  h+='<div class="nav-foot">'+(auth&&auth.email?'<span>'+esc(auth.email)+'</span>':'')+'</div></aside>';
+  h+='<div class="nav-bottom"><span class="nav-lbl">Действия</span><button type="button" class="nav-cta" data-act="visit">'+svg('plus',18)+'<span>Запиши посещение</span></button>';
+  h+='<div class="nav-tiles"><button type="button" class="nav-tile" data-act="appt-new">'+svg('calplus',20)+'<span>Запази час</span></button><button type="button" class="nav-tile" data-act="odo">'+svg('gauge',20)+'<span>Километраж</span></button></div>';
+  h+=syncCardHTML();
+  h+='<div class="nav-foot">'+(auth&&auth.email?'<span>'+esc(auth.email)+'</span>':'')+'</div></div></aside>';
   return h;
 }
+// телефон, ред 1: меню · колата (= Табло) · синхронизация · „+“ (меню с действия)
 function topbarHTML(rows){
   var att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'});
   return '<div class="topbar"><button type="button" class="tb-menu" data-act="menu" aria-label="Меню" aria-controls="nav" aria-expanded="'+menuIsOpen()+'">'+svg('menu',22)+'</button>'+
-    '<button type="button" class="tb-home'+(ui.tab==='board'?' on':'')+'" data-act="tab" data-v="board" aria-label="Табло">'+svg('home',20)+(att?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+'</button>'+
-    '<span class="tb-title">'+(TAB_TITLE[ui.tab]||'')+'</span>'+
-    '<button type="button" class="tb-notes'+(ui.tab==='notes'?' on':'')+'" data-act="tab" data-v="notes" aria-label="Записки" title="Записки">'+svg('note',20)+'</button>'+
-    (odoPass()?syncBtnHTML('tb-sync'):'')+'<button type="button" class="tb-act" data-act="visit" aria-label="Запиши посещение" title="Запиши посещение">'+svg('plus',20)+'</button></div>';
+    '<button type="button" class="tb-brand" data-act="tab" data-v="board" aria-label="Табло">'+(S.car.photo?'<img src="'+S.car.photo+'" alt="" style="'+pvStyle(S.car.photoView)+'">':'<img src="icons/icon-192.png" alt="">')+'<span><b>'+esc(S.car.name)+'</b><small>'+fmtK(cur().km)+' км</small></span></button>'+
+    (odoPass()?syncBtnHTML('tb-sync'):'')+'<button type="button" class="tb-act" data-act="add-menu" aria-label="Добави" title="Добави">'+svg('plus',22)+'</button></div>';
 }
+// телефон, ред 2: разделите като чипове (скролват се със страницата)
+var CHIPS=[['board','Табло'],['service','Сервиз'],['notes','Записки'],['schedule','График'],['history','История']];
+function chipsHTML(rows){
+  var att=attCount(rows),bad=rows.some(function(o){return o.x.st==='bad'});
+  var conf=ui.tab==='settings'||ui.tab==='prefs';
+  return '<nav class="tb-chips" aria-label="Раздели">'+CHIPS.map(function(c){return '<button type="button" class="tb-chip" data-act="tab" data-v="'+c[0]+'"'+(ui.tab===c[0]?' aria-current="page"':'')+'>'+c[1]+(c[0]==='board'&&att?'<b class="badge'+(bad?' bad':'')+'">'+att+'</b>':'')+'</button>'}).join('')+(conf?'<button type="button" class="tb-chip" aria-current="page" data-act="tab" data-v="'+ui.tab+'">'+TAB_TITLE[ui.tab]+'</button>':'')+'</nav>';
+}
+function addSheet(){
+  var it=[['visit','plus','Запиши посещение','Отметнете какво е направено в сервиза'],['appt-new','calplus','Запази час за сервиз','С напомняне в календара и известие'],['note-new','note','Нова записка','Наблюдение, въпрос към сервиза, номер на част'],['odo','gauge','Обнови километража','Ръчно или от MyŠkoda']];
+  return {title:'Добави',sub:'',body:'<div class="add-list">'+it.map(function(x){return '<button type="button" class="add-i" data-act="'+x[0]+'"><span class="add-ico">'+svg(x[1],20)+'</span><span class="add-t"><b>'+x[2]+'</b><small>'+x[3]+'</small></span>'+svg('chev',16)+'</button>'}).join('')+'</div>'};
+}
+function newNote(){ui.sheet=null;ui.tab='notes';lsSet('kq-tab','notes');render();setTimeout(function(){var ta=document.getElementById('n-text');if(ta){ta.focus();try{ta.scrollIntoView({block:'center'})}catch(e){}}},40)}
 function pageHead(){
   return '<div class="page-head"><h1>'+(TAB_TITLE[ui.tab]||'')+'</h1><div class="save'+(saveCls?' '+saveCls:'')+'" id="save">'+esc(saveText())+'</div></div>';
 }
@@ -2118,6 +2168,8 @@ root.addEventListener('click',function(e){
   if(a==='push-copy'){var pc=ui.push&&ui.push.sub||'';ui.pushCodeOpen=true;var sel=function(){var ta=document.getElementById('push-code');if(ta){ta.focus();ta.select()}toast('Кодът е маркиран – копирайте с Ctrl+C / „Копиране“',false,5000)};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(pc).then(function(){toast('Кодът е копиран',false,3000)},sel);else sel();return}
   if(apptAction(a,id))return;
   if(odoAction(a))return;
+  if(a==='add-menu'){openSheet({type:'add'});return}
+  if(a==='note-new'){newNote();return}
   if(a==='reply'){ui.replyTo=id;ui.editNote=null;ui.del=null;render();focusReply();return}
   if(a==='reply-cancel'){ui.replyTo=null;render();return}
   if(a==='reply-del'){var rp=String(id).split('/');if(ui.del!=='nr:'+id){ui.del='nr:'+id;render();return}act('Коментарът е изтрит',function(){var rn=S.notes.find(function(n){return n.id===rp[0]});if(rn&&rn.replies){rn.replies=rn.replies.filter(function(r){return r.id!==rp[1]});if(!rn.replies.length)delete rn.replies}});return}
