@@ -16,6 +16,12 @@ on:
         required: false
         default: ''
         type: string
+      mode:
+        description: 'auto = сутрешна проверка (до 4 опита, пропуска ако днес вече е взет); now = една заявка'
+        required: false
+        default: now
+        type: choice
+        options: [now, auto]
 
 permissions:
   contents: write
@@ -43,7 +49,7 @@ jobs:
           SKODA_API_KEY: ${{ secrets.SKODA_API_KEY }}
           SKODA_VIN: ${{ secrets.SKODA_VIN }}
           ODO_SECRET: ${{ secrets.ODO_SECRET }}
-          ODO_MODE: ${{ github.event_name == 'schedule' && 'auto' || 'now' }}
+          ODO_MODE: ${{ (github.event_name == 'schedule' || inputs.mode == 'auto') && 'auto' || 'now' }}
           ODO_REQUEST: ${{ inputs.request_id }}
       - name: Публикуване на криптирания файл (клон odo-data, без история)
         if: always()
