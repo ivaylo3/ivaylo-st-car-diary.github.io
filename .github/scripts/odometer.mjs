@@ -22,10 +22,11 @@ const ATTEMPTS = Number(process.env.ODO_ATTEMPTS || 4), GAP_MIN = Number(process
 
 if (!SKODA_API_KEY || !SKODA_VIN || !ODO_SECRET) { console.log('Липсва SKODA_API_KEY, SKODA_VIN или ODO_SECRET в GitHub Secrets.'); process.exit(1); }
 
+const sofiaHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Sofia', hour: '2-digit', hour12: false }).format(new Date()));
+const sofiaDay = d => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Sofia' }).format(d);
 if (MODE === 'auto' && !process.env.ODO_IGNORE_HOUR) {
-  // GitHub работи по UTC – пуска се в 05:30 и 06:30 UTC; работим само когато в София е 8:xx (зимно и лятно време).
-  const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Sofia', hour: '2-digit', hour12: false }).format(new Date()));
-  if (h !== 8) { console.log(`В София е ${h} ч – сутрешната проверка е в 8:30, това пускане се пропуска.`); process.exit(0); }
+  // Сутрешният прозорец е 8–13 ч в София (GitHub понякога закъснява с часове).
+  if (sofiaHour < 8 || sofiaHour > 13) { console.log(`В София е ${sofiaHour} ч – извън сутрешния прозорец (8–13 ч), пропуска се.`); process.exit(0); }
 }
 
 const WHY = {
@@ -78,8 +79,14 @@ async function write(obj) {
   writeFileSync(OUT, JSON.stringify({ v: 1, alg: 'PBKDF2-SHA256-250000/AES-256-GCM', salt: b64(salt), iv: b64(iv), ct: b64(ct) }));
 }
 
+const prevEarly = await readPrev();
+if (MODE === 'auto' && prevEarly && prevEarly.lastOk && prevEarly.fetched && sofiaDay(new Date(prevEarly.fetched)) === sofiaDay(new Date())) {
+  console.log('Километражът вече е взет днес – без нова заявка към Škoda.');
+  process.exit(0);
+}
 let r = null;
-const tries = MODE === 'auto' ? ATTEMPTS : 1;
+// пълните 4 опита само в първото сутрешно пускане (8 ч); резервните правят по 1 заявка
+const tries = MODE === 'auto' ? (sofiaHour === 8 ? ATTEMPTS : 1) : 1;
 for (let i = 0; i < tries; i++) {
   if (i) { console.log(`Опит ${i + 1} от ${tries} след ${GAP_MIN} мин…`); await new Promise(s => setTimeout(s, GAP_MIN * 60000)); }
   r = await attempt();
@@ -87,7 +94,7 @@ for (let i = 0; i < tries; i++) {
   console.log('Няма свежи данни:', r.code, '–', WHY[r.code] || '');
 }
 
-const now = new Date().toISOString(), prev = await readPrev();
+const now = new Date().toISOString(), prev = prevEarly;
 let out;
 if (r.ok) {
   out = { v: 2, km: r.km, at: r.at || now, fetched: now, keyExpires: keyExpires || (prev && prev.keyExpires) || null, lastAttempt: now, lastOk: true, code: null, req: REQ || null };

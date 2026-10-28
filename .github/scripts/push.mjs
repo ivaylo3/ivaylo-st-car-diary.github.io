@@ -17,7 +17,7 @@ webpush.setVapidDetails(SITE_URL || 'https://github.com', VAPID_PUBLIC_KEY, VAPI
 // Ежедневният сигнал тръгва само между 11:00 и 12:59 българско време.
 if ((PUSH_TYPE || 'daily') === 'daily' && process.env.GITHUB_EVENT_NAME === 'schedule') {
   const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Sofia', hour: '2-digit', hour12: false }).format(new Date()));
-  if (h < 11 || h > 12) { console.log(`В София е ${h} ч. – не е време за известия.`); process.exit(0); }
+  if (h < 11 || h > 21) { console.log(`В София е ${h} ч. – известията са между 11 и 22 ч.`); process.exit(0); }
 }
 const subs = parseSubs(PUSH_SUBSCRIPTIONS);
 const payload = JSON.stringify({ type: PUSH_TYPE || 'daily' });
