@@ -19,6 +19,25 @@ if ((PUSH_TYPE || 'daily') === 'daily' && process.env.GITHUB_EVENT_NAME === 'sch
   const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Sofia', hour: '2-digit', hour12: false }).format(new Date()));
   if (h < 11 || h > 21) { console.log(`В София е ${h} ч. – известията са между 11 и 22 ч.`); process.exit(0); }
 }
+// План: сигнал само в дните, в които устройството ще има ново напомняне (иначе Chrome показва
+// „This site has been updated in the background“). Ако план няма или не се чете – пращаме както преди.
+if ((PUSH_TYPE || 'daily') === 'daily' && process.env.PLAN_FILE && process.env.ODO_SECRET) {
+  try {
+    const { readFileSync, existsSync } = await import('node:fs');
+    if (existsSync(process.env.PLAN_FILE)) {
+      const { webcrypto: c } = await import('node:crypto');
+      const f = JSON.parse(readFileSync(process.env.PLAN_FILE, 'utf8')), b = s => new Uint8Array(Buffer.from(s, 'base64'));
+      const base = await c.subtle.importKey('raw', new TextEncoder().encode(process.env.ODO_SECRET), 'PBKDF2', false, ['deriveKey']);
+      const key = await c.subtle.deriveKey({ name: 'PBKDF2', salt: b(f.salt), iterations: 250000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+      const plan = JSON.parse(new TextDecoder().decode(await c.subtle.decrypt({ name: 'AES-GCM', iv: b(f.iv) }, key, b(f.ct))));
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Sofia' }).format(new Date());
+      if (plan && Array.isArray(plan.days) && plan.until >= today) {
+        if (!plan.days.includes(today)) { console.log('Днес няма нови напомняния по плана – сигнал не се праща.'); process.exit(0); }
+        console.log('Днес има ново напомняне по плана.');
+      } else console.log('Планът е изтекъл – пращаме без план.');
+    } else console.log('Още няма план – пращаме без план.');
+  } catch (e) { console.log('Планът не може да се прочете – пращаме без план.'); }
+}
 const subs = parseSubs(PUSH_SUBSCRIPTIONS);
 const payload = JSON.stringify({ type: PUSH_TYPE || 'daily' });
 let ok = 0, gone = 0, failed = 0;

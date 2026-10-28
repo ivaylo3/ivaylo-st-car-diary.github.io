@@ -1,0 +1,36 @@
+name: План за известия
+run-name: План за известия
+
+# Приложението изпраща криптиран списък с дати, в които телефонът ще има ново напомняне.
+# Пази се в клона notify-plan (само последната версия). Ежедневната проверка праща сигнал само в тези дни.
+on:
+  workflow_dispatch:
+    inputs:
+      plan:
+        description: 'Криптиран план (генерира се от приложението)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: notify-plan
+  cancel-in-progress: true
+
+jobs:
+  save:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Проверка и запис в клона notify-plan
+        env:
+          PLAN: ${{ inputs.plan }}
+        run: |
+          cd "$RUNNER_TEMP" && rm -rf pub && mkdir pub && cd pub
+          printf '%s' "$PLAN" > plan.json
+          node -e "const j=JSON.parse(require('fs').readFileSync('plan.json','utf8'));if(!j.salt||!j.iv||!j.ct)process.exit(1)" || { echo "Невалиден план."; exit 1; }
+          git init -q -b notify-plan
+          git add plan.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "План за известия (криптиран)"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" notify-plan
+          echo "Планът е записан."

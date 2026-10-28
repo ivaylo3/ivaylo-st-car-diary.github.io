@@ -1437,6 +1437,7 @@ function writeDueCache(force){
   dueTimer=setTimeout(function(){
     try{var js=JSON.stringify(dueSnapshot());if(!force&&js===lastDue)return;lastDue=js;
       caches.open('cd-notify').then(function(c){return c.put('due.json',new Response(js,{headers:{'Content-Type':'application/json'}}))}).catch(function(){});
+      if(typeof publishPlan==='function')publishPlan();
     }catch(e){}
   },force?0:800);
 }
@@ -2041,6 +2042,64 @@ function ghTokenHTML(){
   return h+'</details>';
 }
 
+// ---------- План за известия: в кои дни телефонът ще има нещо НОВО за показване ----------
+// Сигнал от GitHub се праща само в тези дни, иначе Chrome показва „This site has been updated in the background“.
+// Логиката е същата като в service worker-а (sw.js → dueToday), без състоянието „изпратено“ на устройството.
+function planYmd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function planParse(s){var a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])}
+function planDays(a,b){return Math.round((planParse(b)-planParse(a))/864e5)}
+function planStep(it,day,sn){
+  var dLeft=it.d?planDays(day,it.d):null;
+  if(it.appt){
+    if(dLeft==null||dLeft<0)return null;
+    var ad=(it.days||[3,1,0]).slice().sort(function(a,b){return a-b}).find(function(x){return dLeft<=x});
+    return ad===undefined?null:it.k+'@'+it.d+' '+(it.t||'')+'#a'+ad;
+  }
+  var days=(sn.days||[30,7,3,1,0]).slice().sort(function(a,b){return a-b}),marks=(sn.kmMarks||[1500,500,0]).slice().sort(function(a,b){return a-b});
+  var kmNow=sn.km+(sn.rate||0)*Math.max(0,planDays(sn.kmDate,day)),kmLeft=it.km!=null?it.km-kmNow:null,step=null;
+  var over=(dLeft!=null&&dLeft<0)||(kmLeft!=null&&kmLeft<=0);
+  if(over){var since=dLeft!=null&&dLeft<0?-dLeft:0;step='over'+Math.floor(since/(sn.overdueEvery||3))}
+  else{
+    var dS=dLeft!=null?days.find(function(x){return dLeft<=x}):undefined,kS=kmLeft!=null?marks.find(function(x){return kmLeft<=x}):undefined;
+    if(dS!==undefined)step='d'+dS;
+    if(kS!==undefined&&(step===null||kmLeft<=1500))step=(step?step+'|':'')+'k'+kS;
+  }
+  return step?it.k+'@'+(it.d||'')+'/'+(it.km!=null?it.km:'')+'#'+step:null;
+}
+// Дните (до 120 напред), в които поне една позиция минава на ново „стъпало“.
+function notifyPlan(){
+  var sn=dueSnapshot(),t=new Date(),out=[];
+  for(var i=0;i<=120;i++){
+    var d=new Date(t.getFullYear(),t.getMonth(),t.getDate()+i),day=planYmd(d),prev=planYmd(new Date(d.getFullYear(),d.getMonth(),d.getDate()-1));
+    if(sn.items.some(function(it){var s=planStep(it,day,sn);return s&&s!==planStep(it,prev,sn)}))out.push(day);
+  }
+  return {v:1,from:planYmd(t),until:planYmd(new Date(t.getFullYear(),t.getMonth(),t.getDate()+120)),days:out};
+}
+function odoEncrypt(obj,pass){
+  var enc=new TextEncoder(),salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  function b64(u){var s='';for(var i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s)}
+  return crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveKey']).then(function(base){
+    return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:250000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt']);
+  }).then(function(key){return crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,enc.encode(JSON.stringify(obj)))})
+    .then(function(ct){return JSON.stringify({v:1,salt:b64(salt),iv:b64(iv),ct:b64(new Uint8Array(ct))})});
+}
+var planTimer=null,planBusy=false;
+// Публикува плана, когато се промени (или веднъж седмично). Нужни са паролата ODO_SECRET и GitHub токенът.
+function publishPlan(force){
+  if(!ghToken()||!odoPass()||!ghRepo()||ui.auth!=='ok'||ui.onboard)return;
+  clearTimeout(planTimer);
+  planTimer=setTimeout(function(){
+    if(planBusy)return;
+    var p;try{p=notifyPlan()}catch(e){return}
+    var sig=JSON.stringify(p.days),last=lsGet('cd-plan-sig'),at=+lsGet('cd-plan-at')||0;
+    if(!force&&sig===last&&Date.now()-at<7*864e5)return;
+    planBusy=true;
+    odoEncrypt(p,odoPass()).then(function(blob){
+      return gh('POST','/actions/workflows/notify-plan.yml/dispatches',{ref:'main',inputs:{plan:blob}});
+    }).then(function(){planBusy=false;lsSet('cd-plan-sig',sig);lsSet('cd-plan-at',String(Date.now()))},function(){planBusy=false});
+  },force?0:4000);
+}
+
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
 var pullTimer=null;
 var syncTimer=null,inFlight=false,dirty=lsGet('kq-dirty')==='1',pendingMsgs=[],baseSnap=lsGet('kq-base');
@@ -2308,7 +2367,7 @@ function handleForm(f){
     act('Записката е добавена',function(){var n={id:uid(),d:nd,text:nt};if(!isNaN(nk))n.km=nk;if(npin)n.pin=true;S.notes.push(n)});return}
   if(k==='appt'){submitAppt(f);return}
   if(k==='odo-pass'){odoSubmit();return}
-  if(k==='gh-token'){var gtv=(document.getElementById('gh-token')||{}).value||'';gtv=gtv.trim();if(!gtv)return;lsSet('cd-gh-token',gtv);ui.odoSetup=false;render();toast('Токенът е запазен – натиснете синхронизация',false,5000);return}
+  if(k==='gh-token'){var gtv=(document.getElementById('gh-token')||{}).value||'';gtv=gtv.trim();if(!gtv)return;lsSet('cd-gh-token',gtv);ui.odoSetup=false;render();publishPlan(true);toast('Токенът е запазен – натиснете синхронизация',false,5000);return}
   if(k==='reply-add'){
     var rid=f.getAttribute('data-id'),rt=val('r-text').trim();if(!rt)return;var rkm=cur().km;
     ui.replyTo=null;act('Коментарът е добавен',function(){var rn=S.notes.find(function(n){return n.id===rid});if(!rn)return;(rn.replies=rn.replies||[]).push({id:uid(),d:today(),km:rkm,text:rt})});return}

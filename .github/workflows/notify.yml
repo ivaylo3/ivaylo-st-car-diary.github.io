@@ -1,14 +1,8 @@
 name: Известия
 
 on:
-  schedule:
-    # Целта е 11:00 българско време. GitHub работи по UTC и често закъснява или пропуска пускания,
-    # затова има няколко резервни. Скриптът праща от 11:00 до 21:59 в София; телефонът показва всяко
-    # напомняне само веднъж, така че следващите пускания за деня не показват нищо ново.
-    - cron: '7 8 * * *'
-    - cron: '7 9 * * *'
-    - cron: '7 11 * * *'
-    - cron: '7 14 * * *'
+  # Пуска се от cron-job.org всеки ден в 11:00 (Europe/Sofia) чрез workflow_dispatch с type=daily.
+  # Пусканията по график в GitHub са махнати: закъсняваха с часове и пращаха излишни сигнали.
   workflow_dispatch:
     inputs:
       type:
@@ -30,10 +24,14 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-save --no-package-lock web-push@3.6.7
+      - name: План за известия
+        run: git fetch -q --depth=1 origin notify-plan && git show FETCH_HEAD:plan.json > "$RUNNER_TEMP/plan.json" || echo "Още няма план."
       - run: node .github/scripts/push.mjs
         env:
           VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           PUSH_SUBSCRIPTIONS: ${{ secrets.PUSH_SUBSCRIPTIONS }}
           PUSH_TYPE: ${{ github.event.inputs.type || 'daily' }}
+          ODO_SECRET: ${{ secrets.ODO_SECRET }}
+          PLAN_FILE: ${{ runner.temp }}/plan.json
           SITE_URL: https://ivaylo3.github.io/ivaylo-st-car-diary.github.io/
