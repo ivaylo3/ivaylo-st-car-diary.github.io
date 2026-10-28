@@ -14,10 +14,11 @@ function parseSubs(text) {
 }
 
 webpush.setVapidDetails(SITE_URL || 'https://github.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-// Ежедневният сигнал тръгва само между 11:00 и 12:59 българско време.
-if ((PUSH_TYPE || 'daily') === 'daily' && process.env.GITHUB_EVENT_NAME === 'schedule') {
+// Предпазител: ежедневният сигнал тръгва само между 11:00 и 12:59 в София, без значение кой е пуснал проверката
+// (напр. ако задачата във външния планировчик е настроена по-често). Тестовото известие не се ограничава.
+if ((PUSH_TYPE || 'daily') === 'daily' && !process.env.PUSH_IGNORE_HOUR) {
   const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Sofia', hour: '2-digit', hour12: false }).format(new Date()));
-  if (h < 11 || h > 21) { console.log(`В София е ${h} ч. – известията са между 11 и 22 ч.`); process.exit(0); }
+  if (h < 11 || h > 12) { console.log(`В София е ${h} ч. – ежедневният сигнал е между 11:00 и 12:59.`); process.exit(0); }
 }
 // План: сигнал само в дните, в които устройството ще има ново напомняне (иначе Chrome показва
 // „This site has been updated in the background“). Ако план няма или не се чете – пращаме както преди.
