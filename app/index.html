@@ -1158,7 +1158,7 @@ function authErr(){var e=new Error('Нужно е да влезете отнов
 function gisReady(){return typeof google!=='undefined'&&google.accounts&&google.accounts.oauth2}
 function initGis(){
   if(tokenClient||!gisReady())return !!tokenClient;
-  tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPE_DRIVE+' '+SCOPE_EMAIL,callback:onToken,error_callback:function(e){ui.authBusy=false;ui.authMsg=(e&&e.type==='popup_closed')?'Входът беше прекъснат.':'Входът не мина'+(e&&e.message?': '+e.message:'.');render()}});
+  tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPE_DRIVE+' '+SCOPE_EMAIL,callback:onToken,error_callback:function(e){ui.authBusy=false;if(ui.authAuto){ui.authAuto=false;ui.authAutoFail=true}ui.authMsg=(e&&e.type==='popup_closed')?'Входът беше прекъснат.':'Входът не мина'+(e&&e.message?': '+e.message:'.');render()}});
   return true;
 }
 function signIn(){
@@ -1169,6 +1169,7 @@ function signIn(){
 }
 function sha256hex(s){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ('0'+x.toString(16)).slice(-2)}).join('')})}
 function onToken(resp){
+  ui.authAuto=false;ui.authAutoFail=!resp||!!resp.error;
   if(!resp||resp.error){ui.authBusy=false;ui.authMsg='Входът не мина'+(resp&&resp.error?' ('+resp.error+')':'')+'.';render();return}
   if(!google.accounts.oauth2.hasGrantedAllScopes(resp,SCOPE_DRIVE,SCOPE_EMAIL)){ui.authBusy=false;ui.authMsg='Нужно е да разрешите и двата достъпа (Google Drive и имейл), за да работи книжката.';render();return}
   var tok=resp.access_token;
@@ -1283,7 +1284,7 @@ var API={
 };
 function gs(){
   var ok=function(){},fail=function(){},r={withSuccessHandler:function(f){ok=f;return r},withFailureHandler:function(f){fail=f;return r}};
-  Object.keys(API).forEach(function(n){r[n]=function(){var a=arguments;API[n].apply(null,a).catch(function(e){if(e&&e.code===404){ids={};saveIds();return API[n].apply(null,a)}throw e}).then(function(v){ok(v)},function(e){if(e&&e.code==='auth'){setSave('Влезте с Google, за да синхронизирате','warn');render()}fail(e)})}});
+  Object.keys(API).forEach(function(n){r[n]=function(){var a=arguments;API[n].apply(null,a).catch(function(e){if(e&&e.code===404){ids={};saveIds();return API[n].apply(null,a)}throw e}).then(function(v){ok(v)},function(e){if(e&&e.code==='auth'){setSave(auth.email&&!ui.authAutoFail?'Синхронизира се при следващото докосване':'Влезте с Google, за да синхронизирате','warn');render()}fail(e)})}});
   return r;
 }
 
@@ -1297,6 +1298,7 @@ function loginScreen(){
 }
 function authBanner(){
   if(ui.auth==='ok')return '';
+  if(ui.auth==='need'&&auth.email&&!ui.authAutoFail&&!ui.authMsg)return '';
   if(ui.auth==='denied')return '<div class="stale" role="alert">'+svg('shield',18)+'<span>'+esc(ui.authMsg||'Този акаунт няма достъп.')+'</span><button type="button" class="btn small" data-act="signin">Друг акаунт</button></div>';
   return '<div class="stale auth" role="status">'+svg('shield',18)+'<span><b>Влезте с Google, за да синхронизирате.</b> '+(dirty?'Имате промени, които още не са изпратени.':'Показвам последното копие на това устройство.')+(ui.authMsg?' <span class="err">'+esc(ui.authMsg)+'</span>':'')+'</span><button type="button" class="btn small primary" data-act="signin"'+(ui.authBusy?' disabled':'')+'>'+(ui.authBusy?'Влизане…':'Продължи')+'</button></div>';
 }
@@ -2100,6 +2102,24 @@ function publishPlan(force){
   },force?0:4000);
 }
 
+// ---------- Тихо подновяване на достъпа до Google Drive ----------
+// Google дава достъп за 1 час. Вместо съобщение „Влезте с Google“, достъпът се подновява сам при първото
+// докосване в приложението (браузърите позволяват прозореца на Google само след действие на потребителя).
+// Съобщение се показва само ако подновяването не успее.
+var autoAuthAt=0;
+function authSoon(){return !auth.token||Date.now()>(auth.exp||0)-5*60000}
+function autoRenewOnTap(e){
+  if(ui.auth==='denied'||ui.authBusy||!auth.email||ui.authAutoFail)return;
+  if(!authSoon())return;
+  var b=e&&e.target&&e.target.closest&&e.target.closest('[data-act="signin"]');if(b)return;
+  if(Date.now()-autoAuthAt<30000)return;
+  if(!initGis())return;
+  autoAuthAt=Date.now();ui.authAuto=true;ui.authBusy=true;
+  try{tokenClient.requestAccessToken({prompt:'',login_hint:auth.email})}catch(x){ui.authBusy=false;ui.authAuto=false;ui.authAutoFail=true;render()}
+}
+document.addEventListener('click',autoRenewOnTap,true);
+document.addEventListener('keydown',function(e){if(e.key==='Enter')autoRenewOnTap(e)},true);
+
 function errText(e){return (e&&(e.message||String(e)))||'неизвестна грешка'}
 var pullTimer=null;
 var syncTimer=null,inFlight=false,dirty=lsGet('kq-dirty')==='1',pendingMsgs=[],baseSnap=lsGet('kq-base');
@@ -2144,7 +2164,7 @@ function cacheSave(){try{localStorage.setItem('kq-data',JSON.stringify(S))}catch
 function replaceS(d){Object.keys(S).forEach(function(k){delete S[k]});Object.keys(d).forEach(function(k){S[k]=d[k]});normalize()}
 function save(){cacheSave();lsSet('kq-dirty','1');if(!gs()){setSave('Няма връзка с Google: запазено само в този браузър','warn');return}dirty=true;setSave('Запазване…');clearTimeout(syncTimer);syncTimer=setTimeout(push,800)}
 function push(){
-  var GS=gs();if(!tokenValid()){ui.auth='need';dirty=true;lsSet('kq-dirty','1');setSave('Влезте с Google, за да синхронизирате','warn');if(!ui.sheet)render();return}
+  var GS=gs();if(!tokenValid()){ui.auth='need';dirty=true;lsSet('kq-dirty','1');setSave(auth.email&&!ui.authAutoFail?'Синхронизира се при следващото докосване':'Влезте с Google, за да синхронизирате','warn');if(!ui.sheet)render();return}
   if(inFlight){clearTimeout(syncTimer);syncTimer=setTimeout(push,500);return}
   inFlight=true;dirty=false;var body=JSON.stringify(S),msgs=pendingMsgs.splice(0),msg=msgs.join(' · ')||'Промяна от това устройство';
   GS.withSuccessHandler(function(r){inFlight=false;
@@ -2168,7 +2188,7 @@ function push(){
 function pull(){
   var GS=gs();
   if(!GS){setSave('Страницата не е отворена през Google Apps Script адреса (/exec).','warn');return}
-  if(!tokenValid()){ui.auth='need';setSave('Влезте с Google, за да синхронизирате','warn');if(!ui.sheet)render();return}
+  if(!tokenValid()){ui.auth='need';setSave(auth.email&&!ui.authAutoFail?'Синхронизира се при следващото докосване':'Влезте с Google, за да синхронизирате','warn');if(!ui.sheet)render();return}
   if(dirty){push();return}
   if(inFlight)return;
   clearTimeout(pullTimer);pullTimer=setTimeout(function(){setStale('timeout');setSave('Google Drive не отговаря.','warn')},20000);
@@ -2445,7 +2465,7 @@ render();
 var pending=ssGet('kq-undo');
 if(pending&&Date.now()-pending.t<12000)toast(pending.msg,true,Math.max(3000,12000-(Date.now()-pending.t)));
 ui.auth=tokenValid()?'ok':'need';render();
-if(ui.auth==='ok'){setSave(dirty?'Изпращане на промени от това устройство…':'Зареждане…');pull()}else setSave('Влезте с Google, за да синхронизирате','warn');
+if(ui.auth==='ok'){setSave(dirty?'Изпращане на промени от това устройство…':'Зареждане…');pull()}else setSave(auth.email&&!ui.authAutoFail?'Синхронизира се при следващото докосване':'Влезте с Google, за да синхронизирате','warn');
 (function waitGis(n){if(gisReady())initGis();else if(n<60)setTimeout(function(){waitGis(n+1)},250)})(0);
 if('serviceWorker' in navigator){try{navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}}
 odoSwConfig();
