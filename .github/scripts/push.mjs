@@ -2,6 +2,10 @@
 // Сигналът не съдържа данни от книжката – устройството само решава какво да покаже.
 import webpush from 'web-push';
 
+// Съобщенията се показват и като анотации на пускането (видими през API), без данни от книжката.
+const _log = console.log;
+console.log = (...a) => { const m = a.join(' '); _log(m); if (process.env.GITHUB_ACTIONS) _log('::notice title=Push::' + m.replace(/%/g, '%25').replace(/\r/g, '').replace(/\n/g, '%0A')); };
+
 const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBSCRIPTIONS, PUSH_TYPE, SITE_URL } = process.env;
 if (!VAPID_PRIVATE_KEY) { console.error('Липсва секретът VAPID_PRIVATE_KEY.'); process.exit(1); }
 if (!PUSH_SUBSCRIPTIONS || !PUSH_SUBSCRIPTIONS.trim()) { console.log('Няма регистрирани устройства (секретът PUSH_SUBSCRIPTIONS е празен).'); process.exit(0); }
