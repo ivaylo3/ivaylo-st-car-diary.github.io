@@ -2054,6 +2054,7 @@ function planStep(it,day,sn){
   var dLeft=it.d?planDays(day,it.d):null;
   if(it.appt){
     if(dLeft==null||dLeft<0)return null;
+    if(dLeft===0&&it.t&&it.t<='11:05')return null; // в деня на час преди ~11:00 телефонът не показва (часът е минал)
     var ad=(it.days||[3,1,0]).slice().sort(function(a,b){return a-b}).find(function(x){return dLeft<=x});
     return ad===undefined?null:it.k+'@'+it.d+' '+(it.t||'')+'#a'+ad;
   }
