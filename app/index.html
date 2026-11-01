@@ -395,6 +395,9 @@ input[type=range]{padding:0;background:none;border:0;accent-color:var(--accent);
 .nt-closed>summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-right:4px}
 .nt-closed[open]>summary::before{transform:rotate(45deg)}
 .nt-closed>summary b{font-size:.75rem;background:var(--sunk);padding:1px 8px;border-radius:999px}
+.plan-list{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.plan-list li{display:flex;gap:12px;align-items:baseline;background:var(--sunk);border-radius:10px;padding:8px 12px;font-size:.88rem}
+.plan-list b{font-family:var(--f-display);font-weight:600;font-variant-numeric:tabular-nums;flex:none;min-width:44px}
 /* ---- service appointments ---- */
 .nav-pill{margin-left:auto;font-size:.68rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:999px;white-space:nowrap}
 .nav-i[aria-current="page"] .nav-pill{background:var(--surface)}
@@ -1455,6 +1458,7 @@ function notifySettingsHTML(){
   if(p.err)h+='<p class="err">'+esc(p.err)+'</p>';
   var dd=notifyDays();
   h+='<div class="f"><span>Напомняй преди срока</span><div class="chips">'+NOTIFY_DAYS_ALL.map(function(d){return '<label class="chk"><input type="checkbox" class="ntf-day" value="'+d+'"'+(dd.indexOf(d)>=0?' checked':'')+'><span>'+(d===0?'в деня':d===1?'1 ден':d+' дни')+'</span></label>'}).join('')+'</div><p class="foot">Плюс при 1 500 и 500 км преди обслужване по километри, и на всеки 3 дни при просрочено. Проверката е всеки ден около 11:00. Настройката важи за всички устройства.</p></div>';
+  if(on)h+=planListHTML();
   if(on){
     h+='<details class="imp-det"'+(ui.pushCodeOpen?' open':'')+'><summary>Свързване с GitHub (еднократно за всяко устройство)</summary><ol class="steps"><li>Копирайте кода на това устройство.</li><li>Отворете <b>github.com → вашето репо → Settings → Secrets and variables → Actions</b>.</li><li>Отворете (или създайте) <b>PUSH_SUBSCRIPTIONS</b> и поставете кода <b>на нов ред</b> под кодовете на другите устройства.</li></ol><textarea id="push-code" rows="4" readonly>'+esc(p.sub)+'</textarea><div class="actions"><button class="btn primary" data-act="push-copy">Копирай кода</button></div><p class="foot">Кодът е само адрес за доставяне на известия до това устройство. В него няма данни от книжката.</p></details>';
   }
@@ -2070,13 +2074,27 @@ function planStep(it,day,sn){
   return step?it.k+'@'+(it.d||'')+'/'+(it.km!=null?it.km:'')+'#'+step:null;
 }
 // Дните (до 120 напред), в които поне една позиция минава на ново „стъпало“.
-function notifyPlan(){
+function notifyPlanDetailed(limit){
   var sn=dueSnapshot(),t=new Date(),out=[];
   for(var i=0;i<=120;i++){
     var d=new Date(t.getFullYear(),t.getMonth(),t.getDate()+i),day=planYmd(d),prev=planYmd(new Date(d.getFullYear(),d.getMonth(),d.getDate()-1));
-    if(sn.items.some(function(it){var s=planStep(it,day,sn);return s&&s!==planStep(it,prev,sn)}))out.push(day);
+    var names=sn.items.filter(function(it){var s=planStep(it,day,sn);return s&&s!==planStep(it,prev,sn)}).map(function(it){return it.n});
+    if(names.length){out.push({d:day,n:names});if(limit&&out.length>=limit)break}
   }
-  return {v:1,from:planYmd(t),until:planYmd(new Date(t.getFullYear(),t.getMonth(),t.getDate()+120)),days:out};
+  return out;
+}
+function notifyPlan(){
+  var t=new Date();
+  return {v:1,from:planYmd(t),until:planYmd(new Date(t.getFullYear(),t.getMonth(),t.getDate()+120)),days:notifyPlanDetailed(0).map(function(x){return x.d})};
+}
+// списък „Следващи известия“ в Настройки → Известия
+function planListHTML(){
+  var l;try{l=notifyPlanDetailed(6)}catch(e){return ''}
+  var at=+lsGet('cd-plan-at')||0;
+  var h='<div class="f"><span>Следващи известия</span>';
+  h+=l.length?'<ul class="plan-list">'+l.map(function(x){var p=x.d.split('-');return '<li><b>'+p[2]+'.'+p[1]+'</b><span>'+esc(x.n.slice(0,3).join(', '))+(x.n.length>3?' и още '+(x.n.length-3):'')+'</span></li>'}).join('')+'</ul>':'<p class="foot">Няма предстоящи напомняния в следващите 4 месеца.</p>';
+  h+='<p class="foot">Известие идва около 11:00 само в тези дни.'+(ghToken()&&odoPass()?' Планът е изпратен към GitHub '+(at?agoText(new Date(at).toISOString()):'— още не')+'.':' За да се праща планът, на това устройство са нужни паролата за MyŠkoda и GitHub токенът.')+'</p></div>';
+  return h;
 }
 function odoEncrypt(obj,pass){
   var enc=new TextEncoder(),salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
@@ -2095,7 +2113,7 @@ function publishPlan(force){
     if(planBusy)return;
     var p;try{p=notifyPlan()}catch(e){return}
     var sig=JSON.stringify(p.days),last=lsGet('cd-plan-sig'),at=+lsGet('cd-plan-at')||0;
-    if(!force&&sig===last&&Date.now()-at<7*864e5)return;
+    if(!force&&sig===last&&Date.now()-at<20*36e5)return;
     planBusy=true;
     odoEncrypt(p,odoPass()).then(function(blob){
       return gh('POST','/actions/workflows/notify-plan.yml/dispatches',{ref:'main',inputs:{plan:blob}});
